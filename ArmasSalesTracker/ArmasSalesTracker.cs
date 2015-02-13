@@ -1,7 +1,9 @@
 ﻿namespace Asser.ArmasSalesTracker
 {
     using System;
+    using Asser.ArmasSalesTracker.Configuration;
     using Asser.ArmasSalesTracker.Services;
+    using Ninject;
 
     public class ArmasSalesTracker
     {
@@ -18,10 +20,9 @@
 
         public static void Main(string[] args)
         {
-            var scraper = new ArmasScraper(new Configuration.Configuration());
+            var kernel = new StandardKernel(new ArmasSalesTrackerModule());
 
-            var tracker = new ArmasSalesTracker(scraper);
-
+            var tracker = new ArmasSalesTracker(kernel.Get<IArmasScraper>());
             tracker.StartTrackingLoop();
         }
 
