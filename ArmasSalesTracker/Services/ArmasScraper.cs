@@ -36,5 +36,33 @@
                 };
             }
         }
+
+        public IEnumerable<PageInfo> GetSubPages(string pageUrl)
+        {
+            var web = new HtmlWeb();
+            var doc = web.Load(pageUrl);
+
+            var subPagesNode = doc.DocumentNode.SelectNodes("//div[@id='product_subcategories_g1c']/ul/li");
+
+            foreach (var subPageNode in subPagesNode)
+            {
+                var pageInfo = new PageInfo();
+
+                var anchorNode = subPageNode.SelectSingleNode("a");
+
+                if (anchorNode != null)
+                {
+                    pageInfo.Title = anchorNode.InnerText;
+                    pageInfo.Url = configuration.ArmasBaseHost + "/" + anchorNode.Attributes["href"].Value;
+                }
+                else
+                {
+                    pageInfo.Url = pageUrl;
+                    pageInfo.Title = subPageNode.InnerText;
+                }
+
+                yield return pageInfo;
+            }
+        }
     }
 }
