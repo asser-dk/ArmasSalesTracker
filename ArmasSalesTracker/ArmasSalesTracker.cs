@@ -32,7 +32,7 @@
             tracker.GetLatestData();
         }
 
-        private void GetLatestData()
+        public void GetLatestData()
         {
             Log.Info("Getting latest data from ARMAS");
             try
