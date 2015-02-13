@@ -16,13 +16,10 @@
 
         private readonly IProductLineUpdater updater;
 
-        private readonly bool isRunning;
-
         public ArmasSalesTracker(IArmasScraper scraper, IProductLineUpdater updater)
         {
             this.scraper = scraper;
             this.updater = updater;
-            isRunning = true;
         }
 
         public static void Main(string[] args)
@@ -31,27 +28,25 @@
             var kernel = new StandardKernel(new ArmasSalesTrackerModule());
 
             var tracker = new ArmasSalesTracker(kernel.Get<IArmasScraper>(), kernel.Get<IProductLineUpdater>());
-            tracker.StartTrackingLoop();
+
+            tracker.GetLatestData();
         }
 
-        public void StartTrackingLoop()
+        private void GetLatestData()
         {
-            Log.Info("Start tracking loop");
-            while (isRunning)
+            Log.Info("Getting latest data from ARMAS");
+            try
             {
-                try
-                {
-                    var products = scraper.GetArmasProductLines();
-                    updater.UpdateProductLines(products);
-                }
-                catch (Exception ex)
-                {
-                    Log.Error("Caught exception in tracking loop", ex);
-                    Console.WriteLine(ex);
-                }
+                var products = scraper.GetArmasProductLines();
+                updater.UpdateProductLines(products);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("Unexpected exception", ex);
+                Console.WriteLine(ex);
             }
 
-            Log.Info("Ended tracking loop");
+            Log.Info("Done.");
         }
     }
 }
