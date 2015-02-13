@@ -5,6 +5,21 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArmasSalesTracker", "ArmasSalesTracker\ArmasSalesTracker.csproj", "{83DC0169-EAB7-4689-87E1-E8EAE7EA8EE3}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = ".nuget", ".nuget", "{CB7578E0-C112-4D1F-A10C-6F04B531A94F}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Website", "Website\Website.csproj", "{681D1803-0DD7-4557-83DF-BF232283BEA4}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "PublishScripts", "PublishScripts", "{19CC62E8-E243-44A3-B458-6A2D350AEB96}"
+	ProjectSection(SolutionItems) = preProject
+		PublishScripts\AzureWebsitePublishModule.psm1 = PublishScripts\AzureWebsitePublishModule.psm1
+		PublishScripts\Publish-WebApplicationWebsite.ps1 = PublishScripts\Publish-WebApplicationWebsite.ps1
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Configurations", "Configurations", "{D71453AB-988B-4B5F-8BDE-A51492A987CE}"
+	ProjectSection(SolutionItems) = preProject
+		PublishScripts\Configurations\Website-WAWS-dev.json = PublishScripts\Configurations\Website-WAWS-dev.json
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -15,8 +30,15 @@ Global
 		{83DC0169-EAB7-4689-87E1-E8EAE7EA8EE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{83DC0169-EAB7-4689-87E1-E8EAE7EA8EE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{83DC0169-EAB7-4689-87E1-E8EAE7EA8EE3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{681D1803-0DD7-4557-83DF-BF232283BEA4}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{681D1803-0DD7-4557-83DF-BF232283BEA4}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{681D1803-0DD7-4557-83DF-BF232283BEA4}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{681D1803-0DD7-4557-83DF-BF232283BEA4}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D71453AB-988B-4B5F-8BDE-A51492A987CE} = {19CC62E8-E243-44A3-B458-6A2D350AEB96}
 	EndGlobalSection
 EndGlobal
