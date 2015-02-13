@@ -34,6 +34,13 @@
                 foreach (var subPage in subPages)
                 {
                     Console.WriteLine("  Scraping subpage: " + subPage.Title);
+                    var productLines = scraper.GetProductLines(tabLink.Url);
+                    foreach (var productLine in productLines)
+                    {
+                        Console.WriteLine(productLine.Title);
+                        Console.WriteLine("\tPrice: " + productLine.Price);
+                        Console.WriteLine("\tPremium price: " + productLine.PremiumPrice);
+                    }
                 }
             }
 

@@ -64,5 +64,43 @@
                 yield return pageInfo;
             }
         }
+
+        public IEnumerable<ProductLine> GetProductLines(string pageUrl)
+        {
+            var web = new HtmlWeb();
+            var doc = web.Load(pageUrl);
+            var productLinksNode = doc.DocumentNode.SelectNodes("//div[@id='products']/div/div");
+
+            foreach (var productLineNode in productLinksNode)
+            {
+                var productLine = new ProductLine();
+
+                productLine.Id = productLineNode.Id.Substring(7);
+
+                productLine.Url = configuration.ArmasBaseUrl + "/"
+                                  + productLineNode.SelectSingleNode("//td[@class='product_image_container']//a")
+                                        .Attributes["href"].Value;
+
+                productLine.ImageUrl = configuration.ArmasBaseUrl + productLineNode.SelectSingleNode("table/tr/td/a/img").Attributes["src"].Value;
+
+                productLine.Title = productLineNode.SelectSingleNode("h4").InnerText;
+
+                productLine.Price =
+                    int.Parse(productLineNode.SelectSingleNode("//span[@class='product_g1c_price']").InnerText.Replace(" G1C", string.Empty));
+
+                var premiumPriceNode =
+                    productLineNode.SelectSingleNode("//span[@class[starts-with(., 'premium_price')]]");
+
+                if (premiumPriceNode != null)
+                {
+                    productLine.PremiumPrice =
+                    int.Parse(
+                        premiumPriceNode
+                            .InnerText.Replace(" G1C", string.Empty));
+                }
+
+                yield return productLine;
+            }
+        }
     }
 }
