@@ -27,5 +27,13 @@
                 return ArmasBaseUrl + ConfigurationManager.AppSettings["ArmasFrontpagePageUri"];
             }
         }
+
+        public string MySqlConnectionString
+        {
+            get
+            {
+                return ConfigurationManager.ConnectionStrings["MySql"].ConnectionString;
+            }
+        }
     }
 }
