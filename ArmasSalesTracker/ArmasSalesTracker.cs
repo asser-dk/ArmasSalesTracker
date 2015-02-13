@@ -5,7 +5,7 @@
 
     public class ArmasSalesTracker
     {
-        private readonly ArmasScraper scraper;
+        private readonly IArmasScraper scraper;
 
         private readonly bool isRunning;
 

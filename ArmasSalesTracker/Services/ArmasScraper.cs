@@ -8,7 +8,7 @@
     using Asser.ArmasSalesTracker.Models;
     using HtmlAgilityPack;
 
-    public class ArmasScraper
+    public class ArmasScraper : IArmasScraper
     {
         private readonly IConfiguration configuration;
 
