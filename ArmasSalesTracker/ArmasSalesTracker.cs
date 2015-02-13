@@ -14,11 +14,14 @@
 
         private readonly IArmasScraper scraper;
 
+        private readonly IProductLineUpdater updater;
+
         private readonly bool isRunning;
 
-        public ArmasSalesTracker(IArmasScraper scraper)
+        public ArmasSalesTracker(IArmasScraper scraper, IProductLineUpdater updater)
         {
             this.scraper = scraper;
+            this.updater = updater;
             isRunning = true;
         }
 
@@ -27,7 +30,7 @@
             XmlConfigurator.Configure();
             var kernel = new StandardKernel(new ArmasSalesTrackerModule());
 
-            var tracker = new ArmasSalesTracker(kernel.Get<IArmasScraper>());
+            var tracker = new ArmasSalesTracker(kernel.Get<IArmasScraper>(), kernel.Get<IProductLineUpdater>());
             tracker.StartTrackingLoop();
         }
 
@@ -39,13 +42,7 @@
                 try
                 {
                     var products = scraper.GetArmasProductLines();
-
-                    foreach (var productLine in products)
-                    {
-                        Console.WriteLine(productLine.Title + "(" + productLine.Id + ")");
-                        Console.WriteLine("  Price: " + productLine.Price);
-                        Console.WriteLine("  Premium price: " + productLine.PremiumPrice);
-                    }
+                    updater.UpdateProductLines(products);
                 }
                 catch (Exception ex)
                 {

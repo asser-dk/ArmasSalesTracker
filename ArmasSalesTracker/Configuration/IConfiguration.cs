@@ -7,5 +7,7 @@
         string ArmasBaseUrl { get; }
 
         string ArmasFrontpagePageUri { get; }
+
+        string MySqlConnectionString { get; }
     }
 }
