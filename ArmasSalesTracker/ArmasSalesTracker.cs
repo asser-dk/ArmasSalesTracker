@@ -29,7 +29,15 @@
             foreach (var tabLink in tabLinks)
             {
                 Console.WriteLine("Scraping tab: " + tabLink.Title);
+                var subPages = scraper.GetSubPages(tabLink.Url);
+
+                foreach (var subPage in subPages)
+                {
+                    Console.WriteLine("  Scraping subpage: " + subPage.Title);
+                }
             }
+
+            Console.ReadLine();
         }
     }
 }
