@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Globalization;
+    using System.Linq;
     using System.Text.RegularExpressions;
     using Asser.ArmasSalesTracker.Configuration;
     using Asser.ArmasSalesTracker.Models;
@@ -16,6 +17,13 @@
         public ArmasScraper(IConfiguration configuration)
         {
             this.configuration = configuration;
+        }
+
+        public IEnumerable<ProductLine> GetArmasProductLines()
+        {
+            return GetTabs()
+                .SelectMany(tabInfo => GetSubPages(tabInfo.Url))
+                .SelectMany(subPage => GetProductLines(subPage.Url));
         }
 
         public IEnumerable<PageInfo> GetTabs()
