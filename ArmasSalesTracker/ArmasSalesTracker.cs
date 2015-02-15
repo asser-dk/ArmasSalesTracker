@@ -3,6 +3,7 @@
     using System;
     using System.Reflection;
     using Asser.ArmasSalesTracker.Configuration;
+    using Asser.ArmasSalesTracker.Models;
     using Asser.ArmasSalesTracker.Services;
     using log4net;
     using log4net.Config;
@@ -14,12 +15,15 @@
 
         private readonly IArmasScraper scraper;
 
-        private readonly IProductLineUpdater updater;
+        private readonly IProductLineService productLineService;
 
-        public ArmasSalesTracker(IArmasScraper scraper, IProductLineUpdater updater)
+        private readonly ISubscriberService subscriberService;
+
+        public ArmasSalesTracker(IArmasScraper scraper, IProductLineService productLineService, ISubscriberService subscriberService)
         {
             this.scraper = scraper;
-            this.updater = updater;
+            this.productLineService = productLineService;
+            this.subscriberService = subscriberService;
         }
 
         public static void Main(string[] args)
@@ -27,26 +31,45 @@
             XmlConfigurator.Configure();
             var kernel = new StandardKernel(new ArmasSalesTrackerModule());
 
-            var tracker = new ArmasSalesTracker(kernel.Get<IArmasScraper>(), kernel.Get<IProductLineUpdater>());
+            var tracker = new ArmasSalesTracker(
+                kernel.Get<IArmasScraper>(),
+                kernel.Get<IProductLineService>(),
+                kernel.Get<ISubscriberService>());
 
-            tracker.GetLatestData();
+            tracker.RunJob();
+
+            Console.ReadKey();
         }
 
-        public void GetLatestData()
+        public void RunJob()
         {
             Log.Info("Getting latest data from ARMAS");
             try
             {
                 var products = scraper.GetArmasProductLines();
-                updater.UpdateProductLines(products);
+                foreach (var product in products)
+                {
+                    Log.Debug(string.Format("id: {0}, name: {1}", product.Id, product.Title));
+                    productLineService.UpdateProductLine(product);
+                    SendAlerts(product);
+                }
             }
             catch (Exception ex)
             {
-                Log.Error("Unexpected exception", ex);
-                Console.WriteLine(ex);
+                Log.Error("Unexpected exception during scraping", ex);
             }
 
             Log.Info("Done.");
+        }
+
+        private void SendAlerts(ProductLine product)
+        {
+            var normalPrices = productLineService.GetNormalPrices(product.Id);
+
+            if (normalPrices.Price < product.Price || normalPrices.Premium < product.PremiumPrice)
+            {
+                subscriberService.SendAlerts(product, normalPrices);
+            }
         }
     }
 }

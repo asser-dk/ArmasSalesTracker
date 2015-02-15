@@ -1,0 +1,240 @@
+﻿<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>¤Title¤ ON SALE!</title>
+    <style>
+        body {
+            font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;
+            color: rgb(34, 34, 34);
+        }
+
+        .regards {
+            margin-top: 40px;
+            font-size: small;
+        }
+
+        .header {
+            height: 120px;
+        }
+
+        .row {
+            display: block;
+            font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;
+            font-size: 16px;
+            font-style: normal;
+            font-weight: normal;
+            line-height: 24px;
+            margin: 0;
+            max-width: none;
+            padding: 0;
+            clear: both;
+        }
+
+        #product-modal {
+            -webkit-box-shadow: rgba(0, 0, 0, 0.4) 0 0 10px 0;
+            background-color: rgb(255, 255, 255);
+            border-image-outset: 0;
+            border-image-repeat: stretch;
+            border-image-slice: 100%;
+            border-image-source: none;
+            border-image-width: 1;
+            border-radius: 3px;
+            border: 1px solid rgb(102, 102, 102);
+            box-shadow: rgba(0, 0, 0, 0.4) 0 0 10px 0;
+            box-sizing: border-box;
+            cursor: auto;
+            display: block;
+            font-family: 'Helvetica Neue', Helvetica, Roboto, Arial, sans-serif;
+            font-size: 16px;
+            font-style: normal;
+            font-weight: normal;
+            height: 471px;
+            left: 0;
+            line-height: 24px;
+            margin: 0 309px;
+            max-width: 1000px;
+            opacity: 1;
+            overflow-y: auto;
+            padding: 30px;
+            position: relative;
+            right: 0;
+            top: 100px;
+        }
+
+        .product-image {
+            display: block;
+            float: left;
+            height: auto;
+            line-height: 24px;
+            margin-right: 10px;
+            max-height: 85px;
+            max-width: 85px;
+            vertical-align: middle;
+            width: auto;
+        }
+
+        .title {
+            position: absolute;
+            left: 120px;
+            color: rgb(34, 34, 34);
+            display: block;
+            font-size: 16px;
+            line-height: 24px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .head2 {
+            display: inline-block;
+            float: left;
+            font-size: 37px;
+            height: 50px;
+            line-height: 50px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .price {
+            font-family: "Consolas", "Menlo", "Courier", monospace;
+            font-size: large;
+            color: #43AC6A;
+            float: left;
+            min-width: 150px;
+            margin-right: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .external-link-container {
+            display: block;
+            font-size: 16px;
+            height: 0;
+            line-height: 24px;
+            margin: 0;
+            padding: 0;
+        }
+
+        .external-link {
+            color: rgb(211, 0, 0);
+            display: block;
+            font-size: 24px;
+            height: 25px;
+            left: 125px;
+            line-height: 24px;
+            position: absolute;
+            top: 85px;
+        }
+
+        .latest {
+            font-weight: bold;
+        }
+
+        .premium {
+            color: #F08A24;
+            float: right;
+        }
+
+        .discounted {
+            text-decoration: line-through;
+            font-weight: normal;
+        }
+
+        .discount {
+            font-size: x-large;
+            color: #d30000;
+        }
+
+        .percentage {
+            font-weight: bold;
+        }
+
+        .premium-star {
+            color: #ffbf45;
+        }
+
+        .on-sale {
+            display: inline-block;
+            color: #d30000;
+            font-weight: bold;
+            font-size: xx-large;
+            margin-left: 10px;
+            float: left;
+            line-height: 50px;
+        }
+
+        .image-container {
+            position: absolute;
+            top: 30px;
+            left: 20px;
+            width: 85px;
+            height: 85px;
+        }
+
+        td {
+            padding: 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="product-modal" class="product-modal reveal-modal open" data-reveal=""
+         style="display: block; opacity: 1; visibility: visible; top: 100px;">
+        <div class="row header">
+            <table width="100%">
+                <tr>
+                    <td width="100px">
+                        <div class="image-container">
+                            <img class="product-image" src="¤ImageUrl¤">
+                        </div>
+                    </td>
+                    <td width="auto">
+                        <div class="title">
+                            <span class="head2">¤Title¤</span> <span class="on-sale">On sale!</span>
+                        </div>
+                        <div class="external-link-container">
+                            <a class="external-link" target="_blank" href="¤Url¤">
+                                <i class="fa fa-external-link"></i>
+                                Visit on ARMAS
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+            <div style="clear:both"></div>
+        </div>
+        <p>&nbsp;</p>
+        <div class="row">
+            <h3>Current prices</h3>
+
+            <p class="time-info">
+                <i class="fa fa-clock-o"></i> Last updated <span class="last-updated">¤LastUpdated¤</span>
+            </p>
+
+            <div class="pricing-container">
+                <div class="prices">
+                    <div class="price">
+                        <span class="normal discounted">¤Normal.Price¤ G1C</span> <span class="latest">¤Latest.Price¤ G1C</span>
+                        <span class="discount">Save <span class="percentage">¤Normal.Discount¤</span> %</span>
+                    </div>
+                    <div class="price premium">
+                        <i class="fa fa-star premium-star has-tip" data-tooltip=""
+                           aria-haspopup="true" title="Premium"></i> <span class="normal discounted">¤Normal.Premium¤ G1C</span>
+                        <span class="latest">¤Latest.Premium¤ G1C</span> <span class="discount">
+                            Save <span class="percentage">¤Premium.Discount¤</span> %
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="row regards">
+            <p>
+                You received this email because you signed up for an email alert on the <a href="http://apbsales.sexyfishhorse.com">APB sales tracker</a>. You will only receive this email once
+                for this product.
+            </p>
+
+            <p>Best regards from SexyFishHorse <a href="http://apbsales.sexyfishhorse.com">APB sales tracker</a>.</p>
+        </div>
+    </div>
+
+</body>
+</html>
