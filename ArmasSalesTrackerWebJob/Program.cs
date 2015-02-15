@@ -18,9 +18,12 @@
             host.Start();
             var kernel = new StandardKernel(new ArmasSalesTrackerModule());
 
-            var tracker = new ArmasSalesTracker(kernel.Get<IArmasScraper>(), kernel.Get<IProductLineUpdater>());
+            var tracker = new ArmasSalesTracker(
+                kernel.Get<IArmasScraper>(),
+                kernel.Get<IProductLineService>(),
+                kernel.Get<ISubscriberService>());
 
-            tracker.GetLatestData();
+            tracker.RunJob();
             host.Stop();
         }
     }
