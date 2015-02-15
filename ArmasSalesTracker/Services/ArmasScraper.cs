@@ -103,7 +103,7 @@
                                   + productLineNode.SelectSingleNode("//td[@class='product_image_container']//a")
                                         .Attributes["href"].Value;
 
-                productLine.ImageUrl = configuration.ArmasBaseUrl + productLineNode.SelectSingleNode("table/tr/td/a/img").Attributes["src"].Value;
+                productLine.ImageUrl = configuration.ArmasBaseHost + productLineNode.SelectSingleNode("table/tr/td/a/img").Attributes["src"].Value;
 
                 productLine.Title = productLineNode.SelectSingleNode("h4").InnerText;
 
