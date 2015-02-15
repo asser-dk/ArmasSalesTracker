@@ -91,7 +91,7 @@
             Log.Info(string.Format("Get product lines for page {0}", pageUrl));
             var web = new HtmlWeb();
             var doc = web.Load(pageUrl);
-            var productLinksNode = doc.DocumentNode.SelectNodes("//div[@id='products']/div/div");
+            var productLinksNode = doc.DocumentNode.SelectNodes("//div[@id='products']/div/div[starts-with(@class, 'product_listing')]");
 
             foreach (var productLineNode in productLinksNode)
             {
@@ -100,7 +100,7 @@
                 productLine.Id = productLineNode.Id.Substring(7);
 
                 productLine.Url = configuration.ArmasBaseUrl + "/"
-                                  + productLineNode.SelectSingleNode("//td[@class='product_image_container']//a")
+                                  + productLineNode.SelectSingleNode("table/tr/td[@class='product_image_container']/a")
                                         .Attributes["href"].Value;
 
                 productLine.ImageUrl = configuration.ArmasBaseHost + productLineNode.SelectSingleNode("table/tr/td/a/img").Attributes["src"].Value;
@@ -108,10 +108,10 @@
                 productLine.Title = productLineNode.SelectSingleNode("h4").InnerText;
 
                 productLine.Price =
-                    int.Parse(productLineNode.SelectSingleNode("//span[@class='product_g1c_price']").InnerText.Replace(" G1C", string.Empty));
+                    int.Parse(productLineNode.SelectSingleNode("table/tr/td[@class='product_price_container']/span/b/span[@class='product_g1c_price']").InnerText.Replace(" G1C", string.Empty));
 
                 var premiumPriceNode =
-                    productLineNode.SelectSingleNode("//span[@class[starts-with(., 'premium_price')]]");
+                    productLineNode.SelectSingleNode("table/tr/td[@class='product_price_container']/span/b/span/span[contains(@class, 'premium_price')]");
 
                 if (premiumPriceNode != null)
                 {
