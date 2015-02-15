@@ -71,10 +71,10 @@
     <Compile Include="Services\IArmasScraper.cs">
       <DependentUpon>ArmasScraper.cs</DependentUpon>
     </Compile>
-    <Compile Include="Services\IProductLineUpdater.cs">
-      <DependentUpon>ProductLineUpdater.cs</DependentUpon>
+    <Compile Include="Services\IProductLineService.cs">
+      <DependentUpon>ProductLineService.cs</DependentUpon>
     </Compile>
-    <Compile Include="Services\ProductLineUpdater.cs" />
+    <Compile Include="Services\ProductLineService.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="App.config" />
