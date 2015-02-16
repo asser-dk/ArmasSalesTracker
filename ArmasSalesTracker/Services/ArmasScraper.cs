@@ -29,7 +29,7 @@
 
             return GetTabs()
                 .SelectMany(tabInfo => GetSubPages(tabInfo.Url))
-                .SelectMany(subPage => GetProductLines(subPage.Url));
+                .SelectMany(GetProductLines);
         }
 
         public IEnumerable<PageInfo> GetTabs()
@@ -86,16 +86,17 @@
             }
         }
 
-        public IEnumerable<ProductLine> GetProductLines(string pageUrl)
+        public IEnumerable<ProductLine> GetProductLines(PageInfo pageInfo)
         {
-            Log.Info(string.Format("Get product lines for page {0}", pageUrl));
+            Log.Info(string.Format("Get product lines for page {0}", pageInfo.Url));
             var web = new HtmlWeb();
-            var doc = web.Load(pageUrl);
+            var doc = web.Load(pageInfo.Url);
             var productLinksNode = doc.DocumentNode.SelectNodes("//div[@id='products']/div/div[starts-with(@class, 'product_listing')]");
 
             foreach (var productLineNode in productLinksNode)
             {
                 var productLine = new ProductLine();
+                productLine.Category = pageInfo.Title;
 
                 productLine.Id = productLineNode.Id.Substring(7);
 

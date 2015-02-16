@@ -13,5 +13,7 @@
         public int Price { get; set; }
 
         public int PremiumPrice { get; set; }
+
+        public string Category { get; set; }
     }
 }
