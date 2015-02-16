@@ -24,8 +24,8 @@
             connection.Open();
 
             updateProductLineCommand = new MySqlCommand(
-                "INSERT INTO ProductLine (Id, Url, ImageUrl, Title) VALUES (@Id, @Url, @ImageUrl, @Title) "
-                + "ON DUPLICATE KEY UPDATE Url=VALUES(Url), ImageUrl=VALUES(ImageUrl), Title=VALUES(Title)",
+                "INSERT INTO ProductLine (Id, Url, ImageUrl, Title, Category) VALUES (@Id, @Url, @ImageUrl, @Title, @Category) "
+                + "ON DUPLICATE KEY UPDATE Url=VALUES(Url), ImageUrl=VALUES(ImageUrl), Title=VALUES(Title), Category=VALUES(Category)",
                 connection);
             insertProductPriceCommand = new MySqlCommand(
                 "INSERT INTO ProductPrice (Product, Price, PremiumPrice) VALUES (@Product, @Price, @PremiumPrice)",
@@ -51,6 +51,7 @@
                 updateProductLineCommand.Parameters.AddWithValue("@Url", productLine.Url);
                 updateProductLineCommand.Parameters.AddWithValue("@ImageUrl", productLine.ImageUrl);
                 updateProductLineCommand.Parameters.AddWithValue("@Title", productLine.Title);
+                updateProductLineCommand.Parameters.AddWithValue("@Category", productLine.Category);
                 updateProductLineCommand.ExecuteNonQuery();
 
                 insertProductPriceCommand.Parameters.Clear();
