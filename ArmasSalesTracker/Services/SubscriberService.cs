@@ -41,8 +41,8 @@
 
             foreach (var subscriber in subscribers)
             {
-                var discount = Math.Round((1 - (product.Price / normalPrices.Price)) * 100);
-                var premiumDiscount = Math.Round((1 - (product.PremiumPrice / normalPrices.Premium)) * 100);
+                var discount = Math.Round((1 - ((double)product.Price / normalPrices.Price)) * 100);
+                var premiumDiscount = Math.Round((1 - ((double)product.PremiumPrice / normalPrices.Premium)) * 100);
 
                 var mailMessage = new PostmarkMessage
                 {
@@ -69,13 +69,14 @@
                             .Replace("¤Normal.Premium¤", normalPrices.Premium.ToString(CultureInfo.InvariantCulture))
                             .Replace("¤Latest.Premium¤", product.PremiumPrice.ToString(CultureInfo.InvariantCulture))
                             .Replace("¤Premium.Discount¤", premiumDiscount.ToString(CultureInfo.InvariantCulture))
-                            .Replace("¤LastUpdated¤", DateTime.UtcNow.ToString("U"));
+                            .Replace("¤LastUpdated¤", DateTime.UtcNow.ToString("U"))
+                            .Replace("¤Category¤", product.Category);
                 }
 
                 mailMessage.HtmlBody = template;
                 mailMessage.TextBody =
                     string.Format(
-                        "{0} is on sale on ARMAS!\n\r\n\rNormal price: {2} - Discounted at {3} - Save {4} %\n\rPremium normal price: {5} - Discounted at {6} - Save {7} %\n\r\n\rVisit ARMAS: {1}\n\r\n\rYou are receiving this mail because you signed up for an email alert the next time this product went on sale. You will only receive this email once for this product.\n\r\n\rBest regards SexyFishHorse Armas sales tracker\n\rhttp://apbsales.sexyfishhorse.com",
+                        "{0} is on sale on ARMAS!\n\rCategory: {8}\n\r\n\rNormal price: {2} - Discounted at {3} - Save {4} %\n\rPremium normal price: {5} - Discounted at {6} - Save {7} %\n\r\n\rVisit ARMAS: {1}\n\r\n\rYou are receiving this mail because you signed up for an email alert the next time this product went on sale. You will only receive this email once for this product.\n\r\n\rBest regards SexyFishHorse Armas sales tracker\n\rhttp://apbsales.sexyfishhorse.com",
                         product.Title,
                         product.Url,
                         normalPrices.Price,
@@ -83,7 +84,8 @@
                         discount,
                         normalPrices.Premium,
                         product.PremiumPrice,
-                        premiumDiscount);
+                        premiumDiscount,
+                        product.Category);
 
                 client.SendMessageAsync(mailMessage);
             }
