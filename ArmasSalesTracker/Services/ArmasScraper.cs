@@ -28,7 +28,7 @@
 
             foreach (var tabInfo in GetTabs())
             {
-                foreach (var page in GetSubPages(tabInfo.Url))
+                foreach (var page in GetSubPages(tabInfo))
                 {
                     foreach (var line in GetProductLines(page, tabInfo))
                     {
@@ -61,11 +61,11 @@
             }
         }
 
-        public IEnumerable<PageInfo> GetSubPages(string pageUrl)
+        public IEnumerable<PageInfo> GetSubPages(PageInfo tabInfo)
         {
-            Log.Debug(string.Format("Get sub pages for page {0}", pageUrl));
+            Log.Debug(string.Format("Get sub pages for page {1} ({0})", tabInfo.Url, tabInfo.Title));
             var web = new HtmlWeb();
-            var doc = web.Load(pageUrl);
+            var doc = web.Load(tabInfo.Url);
 
             var subPagesNode = doc.DocumentNode.SelectNodes("//div[@id='product_subcategories_g1c']/ul/li");
 
@@ -82,7 +82,7 @@
                 }
                 else
                 {
-                    pageInfo.Url = pageUrl;
+                    pageInfo.Url = tabInfo.Url;
                     pageInfo.Title = subPageNode.InnerText;
                 }
 
@@ -94,7 +94,7 @@
 
         public IEnumerable<ProductLine> GetProductLines(PageInfo pageInfo, PageInfo tabInfo)
         {
-            Log.Info(string.Format("Get product lines for page {0}", pageInfo.Url));
+            Log.Info(string.Format("Get product lines for page {1} ({0})", pageInfo.Url, pageInfo.Title));
             var web = new HtmlWeb();
             var doc = web.Load(pageInfo.Url);
             var productLinksNode = doc.DocumentNode.SelectNodes("//div[@id='products']/div/div[starts-with(@class, 'product_listing')]");
