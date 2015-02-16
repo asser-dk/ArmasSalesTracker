@@ -27,9 +27,16 @@
         {
             Log.Debug("Get all armas products");
 
-            return GetTabs()
-                .SelectMany(tabInfo => GetSubPages(tabInfo.Url))
-                .SelectMany(GetProductLines);
+            foreach (PageInfo tabInfo in GetTabs())
+            {
+                foreach (PageInfo page in GetSubPages(tabInfo.Url))
+                {
+                    foreach (ProductLine line in GetProductLines(page, tabInfo))
+                    {
+                        yield return line;
+                    }
+                }
+            }
         }
 
         public IEnumerable<PageInfo> GetTabs()
@@ -86,7 +93,7 @@
             }
         }
 
-        public IEnumerable<ProductLine> GetProductLines(PageInfo pageInfo)
+        public IEnumerable<ProductLine> GetProductLines(PageInfo pageInfo, PageInfo tabInfo)
         {
             Log.Info(string.Format("Get product lines for page {0}", pageInfo.Url));
             var web = new HtmlWeb();
@@ -96,7 +103,7 @@
             foreach (var productLineNode in productLinksNode)
             {
                 var productLine = new ProductLine();
-                productLine.Category = pageInfo.Title;
+                productLine.Category = tabInfo.Title + " - " + pageInfo.Title;
 
                 productLine.Id = productLineNode.Id.Substring(7);
 

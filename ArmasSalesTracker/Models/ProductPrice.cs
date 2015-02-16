@@ -2,8 +2,8 @@ namespace Asser.ArmasSalesTracker.Models
 {
     public class ProductPrice
     {
-        public double Price { get; set; }
+        public int Price { get; set; }
 
-        public double Premium { get; set; }
+        public int Premium { get; set; }
     }
 }
