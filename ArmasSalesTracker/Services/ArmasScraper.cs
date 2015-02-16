@@ -2,7 +2,6 @@
 {
     using System.Collections.Generic;
     using System.Globalization;
-    using System.Linq;
     using System.Reflection;
     using System.Text.RegularExpressions;
     using Asser.ArmasSalesTracker.Configuration;
@@ -27,11 +26,11 @@
         {
             Log.Debug("Get all armas products");
 
-            foreach (PageInfo tabInfo in GetTabs())
+            foreach (var tabInfo in GetTabs())
             {
-                foreach (PageInfo page in GetSubPages(tabInfo.Url))
+                foreach (var page in GetSubPages(tabInfo.Url))
                 {
-                    foreach (ProductLine line in GetProductLines(page, tabInfo))
+                    foreach (var line in GetProductLines(page, tabInfo))
                     {
                         yield return line;
                     }
@@ -79,7 +78,7 @@
                 if (anchorNode != null)
                 {
                     pageInfo.Title = anchorNode.InnerText;
-                    pageInfo.Url = configuration.ArmasBaseHost + "/" + anchorNode.Attributes["href"].Value;
+                    pageInfo.Url = string.Format("{0}/{1}", configuration.ArmasBaseHost, anchorNode.Attributes["href"].Value);
                 }
                 else
                 {
@@ -103,13 +102,14 @@
             foreach (var productLineNode in productLinksNode)
             {
                 var productLine = new ProductLine();
-                productLine.Category = tabInfo.Title + " - " + pageInfo.Title;
+                productLine.Category = string.Format("{0} - {1}", tabInfo.Title, pageInfo.Title);
 
                 productLine.Id = productLineNode.Id.Substring(7);
 
-                productLine.Url = configuration.ArmasBaseUrl + "/"
-                                  + productLineNode.SelectSingleNode("table/tr/td[@class='product_image_container']/a")
-                                        .Attributes["href"].Value;
+                productLine.Url = string.Format(
+                    "{0}/{1}",
+                    configuration.ArmasBaseUrl,
+                    productLineNode.SelectSingleNode("table/tr/td[@class='product_image_container']/a").Attributes["href"].Value);
 
                 productLine.ImageUrl = configuration.ArmasBaseHost + productLineNode.SelectSingleNode("table/tr/td/a/img").Attributes["src"].Value;
 
