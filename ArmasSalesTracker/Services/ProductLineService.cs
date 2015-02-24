@@ -1,5 +1,6 @@
 ﻿namespace Asser.ArmasSalesTracker.Services
 {
+    using System;
     using System.Reflection;
     using Asser.ArmasSalesTracker.Configuration;
     using Asser.ArmasSalesTracker.Models;
@@ -32,7 +33,7 @@
                 + "ON DUPLICATE KEY UPDATE Url=VALUES(Url), ImageUrl=VALUES(ImageUrl), Title=VALUES(Title), Category=VALUES(Category)",
                 connection);
             insertProductPriceCommand = new MySqlCommand(
-                "INSERT INTO ProductPrice (Product, Price, PremiumPrice) VALUES (@Product, @Price, @PremiumPrice)",
+                "INSERT INTO ProductPrice (Product, Price, PremiumPrice, Timestamp) VALUES (@Product, @Price, @PremiumPrice, @Timestamp)",
                 connection);
             normalPriceCommand =
                 new MySqlCommand(
@@ -89,10 +90,21 @@
                 }
                 else
                 {
+                    var insertTimestamp = DateTime.UtcNow;
+                    // Insert new fixed data point for an hour ago - TODO: Figure out how to get the job interval from azure
                     insertProductPriceCommand.Parameters.Clear();
                     insertProductPriceCommand.Parameters.AddWithValue("@Product", productLine.Id);
                     insertProductPriceCommand.Parameters.AddWithValue("@Price", productLine.Price);
                     insertProductPriceCommand.Parameters.AddWithValue("@PremiumPrice", productLine.PremiumPrice);
+                    insertProductPriceCommand.Parameters.AddWithValue("@Timestamp", insertTimestamp.AddHours(-1));
+                    insertProductPriceCommand.ExecuteNonQuery();
+
+                    // Insert new data point that will be updated above
+                    insertProductPriceCommand.Parameters.Clear();
+                    insertProductPriceCommand.Parameters.AddWithValue("@Product", productLine.Id);
+                    insertProductPriceCommand.Parameters.AddWithValue("@Price", productLine.Price);
+                    insertProductPriceCommand.Parameters.AddWithValue("@PremiumPrice", productLine.PremiumPrice);
+                    insertProductPriceCommand.Parameters.AddWithValue("@Timestamp", insertTimestamp);
                     insertProductPriceCommand.ExecuteNonQuery();
                 }
             }
