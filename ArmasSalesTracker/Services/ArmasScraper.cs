@@ -2,8 +2,10 @@
 {
     using System.Collections.Generic;
     using System.Globalization;
+    using System.Net;
     using System.Reflection;
     using System.Text.RegularExpressions;
+    using System.Web;
     using Asser.ArmasSalesTracker.Configuration;
     using Asser.ArmasSalesTracker.Models;
     using HtmlAgilityPack;
@@ -22,20 +24,18 @@
             this.configuration = configuration;
         }
 
+        public Cookie SessionCookie { get; set; }
+
         public IEnumerable<ProductLine> GetArmasProductLines()
         {
             Log.Debug("Get all armas products");
 
-            foreach (var tabInfo in GetTabs())
-            {
-                foreach (var page in GetSubPages(tabInfo))
-                {
-                    foreach (var line in GetProductLines(page, tabInfo))
-                    {
-                        yield return line;
-                    }
-                }
-            }
+            LogInToArmas(configuration.ArmasUsername, configuration.ArmasPassword);
+
+            return
+                GetTabs()
+                    .SelectMany(tabInfo => GetSubPages(tabInfo.Url), (tabInfo, page) => new { tabInfo, page })
+                    .SelectMany(@t => GetProductLines(@t.page, @t.tabInfo));
         }
 
         public IEnumerable<PageInfo> GetTabs()
@@ -137,6 +137,23 @@
                         productLine.Url));
 
                 yield return productLine;
+            }
+        }
+
+        private void LogInToArmas(string username, string password)
+        {
+            Log.Debug("Log in to armas");
+            var web = new HtmlWeb { UseCookies = true, PostResponse = OnPostResponse };
+            var doc = web.Load(configuration.ArmasLoginPageUrl);
+            var loginToken = doc.DocumentNode.SelectSingleNode("//*[@id=\"login__token\"]").GetAttributeValue("value", string.Empty);
+        }
+
+        private void OnPostResponse(HttpWebRequest request, HttpWebResponse response)
+        {
+            var cookie = response.Cookies["session-production"];
+            if (cookie != null)
+            {
+                SessionCookie = cookie;
             }
         }
     }
