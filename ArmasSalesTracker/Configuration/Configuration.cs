@@ -59,5 +59,13 @@
                 return ConfigurationManager.AppSettings["Armas.LoginPageUrl"];
             }
         }
+
+        public string ArmasRegisterUrl
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["Armas.RegisterUrl"];
+            }
+        }
     }
 }

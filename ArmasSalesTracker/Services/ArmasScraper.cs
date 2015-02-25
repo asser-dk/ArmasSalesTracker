@@ -2,8 +2,12 @@
 {
     using System.Collections.Generic;
     using System.Globalization;
+    using System.IO;
+    using System.Linq;
     using System.Net;
     using System.Reflection;
+    using System.Security.Authentication;
+    using System.Text;
     using System.Text.RegularExpressions;
     using System.Web;
     using Asser.ArmasSalesTracker.Configuration;
@@ -146,6 +150,45 @@
             var web = new HtmlWeb { UseCookies = true, PostResponse = OnPostResponse };
             var doc = web.Load(configuration.ArmasLoginPageUrl);
             var loginToken = doc.DocumentNode.SelectSingleNode("//*[@id=\"login__token\"]").GetAttributeValue("value", string.Empty);
+
+            var postData = new StringBuilder();
+            postData.Append(string.Format("{0}={1}&", HttpUtility.UrlEncode("login[email]"), HttpUtility.UrlEncode(username)));
+            postData.Append(string.Format("{0}={1}&", HttpUtility.UrlEncode("login[password]"), HttpUtility.UrlEncode(password)));
+            postData.Append(string.Format("{0}={1}&", HttpUtility.UrlEncode("login[_token]"), HttpUtility.UrlEncode(loginToken)));
+            postData.Append(string.Format("{0}={1}", HttpUtility.UrlEncode("_target_path"), HttpUtility.UrlEncode("http://gamersfirst.com")));
+
+            var ascii = new ASCIIEncoding();
+            var postBytes = ascii.GetBytes(postData.ToString());
+
+            var request = (HttpWebRequest)WebRequest.Create(configuration.ArmasLoginPageUrl);
+            request.Method = "POST";
+            request.UserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.115 Safari/537.36";
+            request.ContentType = "application/x-www-form-urlencoded";
+            request.ContentLength = postBytes.Length;
+            request.CookieContainer = Cookies;
+            request.Referer = configuration.ArmasLoginPageUrl;
+            request.Host = configuration.ArmasRegisterUrl.Replace("https://", string.Empty);
+            request.Headers.Add("Origin", configuration.ArmasRegisterUrl);
+
+            using (var postStream = request.GetRequestStream())
+            {
+                postStream.Write(postBytes, 0, postBytes.Length);
+            }
+
+            var response = request.GetResponse();
+
+            using (var output = response.GetResponseStream())
+            {
+                using (var reader = new StreamReader(output))
+                {
+                    var data = reader.ReadToEnd();
+
+                    if (!data.Contains("<div class=\"g1c_balance_top_nav\">"))
+                    {
+                        throw new AuthenticationException("Unable to log in to armas. G1C credit counter not available.");
+                    }
+                }
+            }
         }
 
         private void OnPostResponse(HttpWebRequest request, HttpWebResponse response)
