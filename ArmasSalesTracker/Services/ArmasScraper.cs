@@ -28,7 +28,7 @@
             this.configuration = configuration;
         }
 
-        public Cookie SessionCookie { get; set; }
+        public CookieContainer Cookies { get; set; }
 
         public IEnumerable<ProductLine> GetArmasProductLines()
         {
@@ -193,11 +193,14 @@
 
         private void OnPostResponse(HttpWebRequest request, HttpWebResponse response)
         {
-            var cookie = response.Cookies["session-production"];
-            if (cookie != null)
+            var container = new CookieContainer(response.Cookies.Count);
+
+            foreach (var cookie in response.Cookies)
             {
-                SessionCookie = cookie;
+                container.Add((Cookie)cookie);
             }
+
+            Cookies = container;
         }
     }
 }
