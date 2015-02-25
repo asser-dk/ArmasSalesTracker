@@ -15,5 +15,7 @@
         string ArmasPassword { get; }
 
         string ArmasLoginPageUrl { get; }
+
+        string ArmasRegisterUrl { get; }
     }
 }
