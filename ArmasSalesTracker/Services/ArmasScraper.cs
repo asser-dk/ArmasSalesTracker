@@ -30,6 +30,27 @@
 
         public CookieContainer Cookies { get; set; }
 
+        public HtmlDocument GetPageContent(string url)
+        {
+            var request = (HttpWebRequest)WebRequest.Create(url);
+            request.Method = "POST";
+            request.UserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.115 Safari/537.36";
+            request.ContentType = "application/x-www-form-urlencoded";
+            request.CookieContainer = Cookies;
+            request.Referer = url;
+            request.Host = configuration.ArmasBaseHost.Replace("http://", string.Empty);
+
+            var response = request.GetResponse();
+
+            using (var output = response.GetResponseStream())
+            {
+                var document = new HtmlDocument();
+                document.Load(output);
+
+                return document;
+            }
+        }
+
         public IEnumerable<ProductLine> GetArmasProductLines()
         {
             Log.Debug("Get all armas products");
@@ -99,8 +120,7 @@
         public IEnumerable<ProductLine> GetProductLines(PageInfo pageInfo, PageInfo tabInfo)
         {
             Log.Info(string.Format("Get product lines for page {1} ({0})", pageInfo.Url, pageInfo.Title));
-            var web = new HtmlWeb();
-            var doc = web.Load(pageInfo.Url);
+            var doc = GetPageContent(pageInfo.Url);
             var productLinksNode = doc.DocumentNode.SelectNodes("//div[@id='products']/div/div[starts-with(@class, 'product_listing')]");
 
             foreach (var productLineNode in productLinksNode)
@@ -119,15 +139,28 @@
 
                 productLine.Title = productLineNode.SelectSingleNode("h4").InnerText;
 
-                productLine.Price =
+                productLine.Prices.Price =
                     int.Parse(productLineNode.SelectSingleNode("table/tr/td[@class='product_price_container']/span/b/span[@class='product_g1c_price']").InnerText.Replace(" G1C", string.Empty));
+
+                var defaultPriceNode =
+                    productLineNode.SelectSingleNode(
+                        "table/tr/td[@class='product_price_container']/span/b/span[@class='product_g1c_price']/strike");
+
+                if (defaultPriceNode != null)
+                {
+                    productLine.Prices.DefaultPrice = int.Parse(defaultPriceNode.InnerText);
+                }
+                else
+                {
+                    productLine.Prices.DefaultPrice = productLine.Prices.Price;
+                }
 
                 var premiumPriceNode =
                     productLineNode.SelectSingleNode("table/tr/td[@class='product_price_container']/span/b/span/span[contains(@class, 'premium_price')]");
 
                 if (premiumPriceNode != null)
                 {
-                    productLine.PremiumPrice =
+                    productLine.Prices.Premium =
                     int.Parse(
                         premiumPriceNode
                             .InnerText.Replace(" G1C", string.Empty));
@@ -161,6 +194,7 @@
             var postBytes = ascii.GetBytes(postData.ToString());
 
             var request = (HttpWebRequest)WebRequest.Create(configuration.ArmasLoginPageUrl);
+            request.AllowAutoRedirect = false;
             request.Method = "POST";
             request.UserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.115 Safari/537.36";
             request.ContentType = "application/x-www-form-urlencoded";
@@ -175,17 +209,36 @@
                 postStream.Write(postBytes, 0, postBytes.Length);
             }
 
-            var response = request.GetResponse();
-
-            using (var output = response.GetResponseStream())
+            using (var response = request.GetResponse())
             {
-                using (var reader = new StreamReader(output))
+                var responseCookies = ((HttpWebResponse)response).Cookies;
+                foreach (var cookie in responseCookies)
                 {
-                    var data = reader.ReadToEnd();
+                    Cookies.Add((Cookie)cookie);
+                }
 
-                    if (!data.Contains("<div class=\"g1c_balance_top_nav\">"))
+                var redirectRequest = (HttpWebRequest)WebRequest.Create(response.ResponseUri);
+                redirectRequest.CookieContainer = Cookies;
+
+                using (var redirectResponse = redirectRequest.GetResponse())
+                {
+                    using (var output = redirectResponse.GetResponseStream())
                     {
-                        throw new AuthenticationException("Unable to log in to armas. G1C credit counter not available.");
+                        if (output == null)
+                        {
+                            throw new AuthenticationException("Unable to log in to armas. No response stream given.");
+                        }
+
+                        using (var reader = new StreamReader(output))
+                        {
+                            var data = reader.ReadToEnd();
+
+                            if (!data.Contains("<div class=\"g1c_balance_top_nav\">"))
+                            {
+                                throw new AuthenticationException(
+                                    "Unable to log in to armas. G1C credit counter not available.");
+                            }
+                        }
                     }
                 }
             }
