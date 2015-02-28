@@ -50,7 +50,7 @@
                 foreach (var product in products)
                 {
                     Log.Debug(string.Format("id: {0}, name: {1}", product.Id, product.Title));
-                    productLineService.UpdateProductLine(product);
+                    productLineService.UpdateProductData(product);
                     SendAlerts(product);
                 }
             }
@@ -66,7 +66,7 @@
         {
             var normalPrices = productLineService.GetNormalPrices(product.Id);
 
-            if (normalPrices.Price < product.Price || normalPrices.Premium < product.PremiumPrice)
+            if (normalPrices.Price < product.Prices.Price || normalPrices.Premium < product.Prices.Premium)
             {
                 subscriberService.SendAlerts(product, normalPrices);
             }

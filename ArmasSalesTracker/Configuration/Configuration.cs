@@ -35,5 +35,37 @@
                 return ConfigurationManager.ConnectionStrings["MySql"].ConnectionString;
             }
         }
+
+        public string ArmasUsername
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["Armas.Username"];
+            }
+        }
+
+        public string ArmasPassword
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["Armas.Password"];
+            }
+        }
+
+        public string ArmasLoginPageUrl
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["Armas.LoginPageUrl"];
+            }
+        }
+
+        public string ArmasRegisterUrl
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["Armas.RegisterUrl"];
+            }
+        }
     }
 }

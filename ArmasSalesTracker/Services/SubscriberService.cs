@@ -41,8 +41,8 @@
 
             foreach (var subscriber in subscribers)
             {
-                var discount = Math.Round((1 - ((double)product.Price / normalPrices.Price)) * 100);
-                var premiumDiscount = Math.Round((1 - ((double)product.PremiumPrice / normalPrices.Premium)) * 100);
+                var discount = Math.Round((1 - ((double)product.Prices.Price / normalPrices.Price)) * 100);
+                var premiumDiscount = Math.Round((1 - ((double)product.Prices.Premium / normalPrices.Premium)) * 100);
 
                 var mailMessage = new PostmarkMessage
                 {
@@ -64,10 +64,10 @@
                             .Replace("¤Url¤", product.Url)
                             .Replace("¤ImageUrl¤", product.ImageUrl)
                             .Replace("¤Normal.Price¤", normalPrices.Price.ToString(CultureInfo.InvariantCulture))
-                            .Replace("¤Latest.Price¤", product.Price.ToString(CultureInfo.InvariantCulture))
+                            .Replace("¤Latest.Price¤", product.Prices.Price.ToString(CultureInfo.InvariantCulture))
                             .Replace("¤Normal.Discount¤", discount.ToString(CultureInfo.InvariantCulture))
                             .Replace("¤Normal.Premium¤", normalPrices.Premium.ToString(CultureInfo.InvariantCulture))
-                            .Replace("¤Latest.Premium¤", product.PremiumPrice.ToString(CultureInfo.InvariantCulture))
+                            .Replace("¤Latest.Premium¤", product.Prices.Premium.ToString(CultureInfo.InvariantCulture))
                             .Replace("¤Premium.Discount¤", premiumDiscount.ToString(CultureInfo.InvariantCulture))
                             .Replace("¤LastUpdated¤", DateTime.UtcNow.ToString("U"))
                             .Replace("¤Category¤", product.Category);
@@ -80,10 +80,10 @@
                         product.Title,
                         product.Url,
                         normalPrices.Price,
-                        product.Price,
+                        product.Prices.Price,
                         discount,
                         normalPrices.Premium,
-                        product.PremiumPrice,
+                        product.Prices.Premium,
                         premiumDiscount,
                         product.Category);
 
