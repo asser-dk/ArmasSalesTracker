@@ -14,6 +14,12 @@
 
         private readonly MySqlCommand updateProductCommand;
 
+        private readonly MySqlCommand latestPricePointCommand;
+
+        private readonly MySqlCommand insertPricePointCommand;
+
+        private readonly MySqlCommand updatePricePointTimestampCommand;
+
         private readonly MySqlCommand insertProductPriceCommand;
 
         private readonly MySqlCommand normalPriceCommand;
@@ -32,6 +38,18 @@
                     "INSERT INTO Product (Id, Url, ImageUrl, Title, Category) "
                     + "VALUES (@Id, @Url, @ImageUrl, @Title, @Category) "
                     + "ON DUPLICATE KEY UPDATE Url=VALUES(Url), ImageUrl=VALUES(ImageUrl), Title=VALUES(Title), Category=VALUES(Category)",
+                    connection);
+
+            latestPricePointCommand =
+                new MySqlCommand(
+                    "SELECT Timestamp, Value FROM Price WHERE Product = @ProductId AND Type = @Type ORDER BY Timestamp DESC LIMIT 1",
+                    connection);
+
+            insertPricePointCommand = new MySqlCommand("INSERT INTO Price (Product, Value, Type, Timestamp) VALUES (@ProductId, @Value, @Type, @Timestamp)", connection);
+
+            updatePricePointTimestampCommand =
+                new MySqlCommand(
+                    "UPDATE Price SET Timestamp = NOW() WHERE Product = @ProductId AND Type = @Type AND @Timestamp = @Timestamp AND Value = @Value LIMIT 1",
                     connection);
 
             insertProductPriceCommand = new MySqlCommand(
@@ -109,6 +127,59 @@
             updateProductCommand.Parameters.AddWithValue("@Title", productLine.Title);
             updateProductCommand.Parameters.AddWithValue("@Category", productLine.Category);
             updateProductCommand.ExecuteNonQuery();
+        }
+
+        public void UpdatePriceInfo(Product product, Price price)
+        {
+            var latestPrice = GetLatestPrice(product.Id, price.Type);
+
+            if (latestPrice.Value != price.Value)
+            {
+                InsertPricePoint(product.Id, price);
+            }
+            else
+            {
+                UpdatePricePointTimestamp(product.Id, latestPrice);
+            }
+        }
+
+        private void UpdatePricePointTimestamp(string productId, Price price)
+        {
+            updatePricePointTimestampCommand.Parameters.Clear();
+            updatePricePointTimestampCommand.Parameters.AddWithValue("@ProductId", productId);
+            updatePricePointTimestampCommand.Parameters.AddWithValue("@Value", price.Value);
+            updatePricePointTimestampCommand.Parameters.AddWithValue("@Type", (int)price.Type);
+            updatePricePointTimestampCommand.Parameters.AddWithValue("@Timestamp", price.Timestamp);
+            updatePricePointTimestampCommand.ExecuteNonQuery();
+        }
+
+        private void InsertPricePoint(string productId, Price price)
+        {
+            insertPricePointCommand.Parameters.Clear();
+            insertPricePointCommand.Parameters.AddWithValue("@ProductId", productId);
+            insertPricePointCommand.Parameters.AddWithValue("@Value", price.Value);
+            insertPricePointCommand.Parameters.AddWithValue("@Type", (int)price.Type);
+            insertPricePointCommand.Parameters.AddWithValue("@Timestamp", price.Timestamp);
+            insertPricePointCommand.ExecuteNonQuery();
+        }
+
+        public Price GetLatestPrice(string productId, PriceTypes type)
+        {
+            latestPricePointCommand.Parameters.Clear();
+            latestPricePointCommand.Parameters.AddWithValue("@ProductId", productId);
+            latestPricePointCommand.Parameters.AddWithValue("@Type", (int)type);
+
+            using (var reader = latestPricePointCommand.ExecuteReader())
+            {
+                return reader.Read()
+                           ? new Price
+                           {
+                               Timestamp = reader.GetDateTime("Timestamp"),
+                               Value = reader.GetInt32("Value"),
+                               Type = type
+                           }
+                           : null;
+            }
         }
 
         public ProductPrice GetNormalPrices(string productId)

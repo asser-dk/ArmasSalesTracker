@@ -50,14 +50,19 @@
                 Log.Info("Get tabs");
                 var pages = scraper.GetAllPages();
 
-                Log.Info("Logging in as fremium");
+                Log.Info("Logging in as freemium");
                 scraper.LogInAsFreemium();
                 foreach (var pageInfo in pages)
                 {
                     var products = scraper.GetProductAndFreemiumInfo(pageInfo);
                     foreach (var product in products)
                     {
+                        Log.Info(string.Format("Updating basic info, default and current price for \"{0}\" (Id: {1})", product.Title, product.Id));
                         productService.UpdateProductData(product);
+                        foreach (var price in product.PriceInfo)
+                        {
+                            productService.UpdatePriceInfo(product, price);
+                        }
                     }
                 }
 
