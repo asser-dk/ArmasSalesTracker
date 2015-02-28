@@ -64,7 +64,7 @@
 
         public IEnumerable<PageInfo> GetTabs()
         {
-            Log.Debug("Get tabs");
+            Log.Info("Acquiring tabs");
             var web = new HtmlWeb();
             var doc = web.Load(configuration.ArmasFrontpagePageUri);
             var tabLinksNode = doc.DocumentNode.SelectNodes("//div[@id='product_categories_g1c']//a[@href]");
@@ -240,9 +240,10 @@
 
                             if (!data.Contains("<div class=\"g1c_balance_top_nav\">"))
                             {
-                                throw new AuthenticationException(
-                                    "Unable to log in to armas. G1C credit counter not available.");
+                                throw new AuthenticationException("Unable to log in to armas. G1C credit counter not available.");
                             }
+
+                            Log.Info("Successfully logged in to Armas");
                         }
                     }
                 }
