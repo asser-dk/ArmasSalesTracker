@@ -138,12 +138,14 @@
 
                 productLine.Title = productLineNode.SelectSingleNode("h4").InnerText;
 
-                productLine.Prices.Price =
-                    int.Parse(productLineNode.SelectSingleNode("table/tr/td[@class='product_price_container']/span/b/span[@class='product_g1c_price']").InnerText.Replace(" G1C", string.Empty));
-
-                var defaultPriceNode =
+                var priceNode =
                     productLineNode.SelectSingleNode(
-                        "table/tr/td[@class='product_price_container']/span/b/span[@class='product_g1c_price']/strike");
+                        "table/tr/td[@class='product_price_container']/span/b/span[@class='product_g1c_price']");
+
+                productLine.Prices.Price =
+                    int.Parse(priceNode.SelectSingleNode("text()").InnerText.Replace(" G1C", string.Empty));
+
+                var defaultPriceNode = priceNode.SelectSingleNode("strike");
 
                 if (defaultPriceNode != null)
                 {
