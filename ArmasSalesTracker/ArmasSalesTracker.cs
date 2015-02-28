@@ -46,13 +46,23 @@
             Log.Info("Getting latest data from ARMAS");
             try
             {
-                var products = scraper.GetArmasProductLines();
+                Log.Info("Logging in as fremium");
+                var products = scraper.GetFreemiumProductData();
                 foreach (var product in products)
                 {
-                    Log.Debug(string.Format("id: {0}, name: {1}", product.Id, product.Title));
                     productLineService.UpdateProductData(product);
                     SendAlerts(product);
                 }
+
+                Log.Info("Logging in as premium");
+                products = scraper.GetPremiumProductData();
+                foreach (var product in products)
+                {
+                    productLineService.UpdatePremiumPrice(product);
+                    SendAlerts(product);
+                }
+
+                Log.Info("Completed successfully.");
             }
             catch (Exception ex)
             {
