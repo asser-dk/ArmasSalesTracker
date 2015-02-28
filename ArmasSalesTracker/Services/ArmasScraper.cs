@@ -65,23 +65,30 @@
         public IEnumerable<PageInfo> GetTabs()
         {
             Log.Info("Acquiring tabs");
-            var web = new HtmlWeb();
-            var doc = web.Load(configuration.ArmasFrontpagePageUri);
-            var tabLinksNode = doc.DocumentNode.SelectNodes("//div[@id='product_categories_g1c']//a[@href]");
+            var request = (HttpWebRequest)WebRequest.Create(configuration.ArmasFrontpagePageUri);
+            request.UserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.115 Safari/537.36";
+            request.CookieContainer = GetCookies();
 
-            foreach (var tabLink in tabLinksNode)
+            using (var response = request.GetResponse())
             {
-                var classes = tabLink.Attributes["class"].Value;
-                var matches = tabTitleRegex.Matches(classes);
-                var title = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(matches[0].Value.Substring(4).Replace('_', ' '));
-                var url = configuration.ArmasBaseHost + tabLink.Attributes["href"].Value;
+                var doc = new HtmlDocument();
+                doc.Load(response.GetResponseStream());
+                var tabLinksNode = doc.DocumentNode.SelectNodes("//div[@id='product_categories_g1c']//a[@href]");
 
-                Log.Debug(string.Format("Found tab {0} with the link {1}", title, url));
-                yield return new PageInfo
+                foreach (var tabLink in tabLinksNode)
                 {
-                    Title = title,
-                    Url = url
-                };
+                    var classes = tabLink.Attributes["class"].Value;
+                    var matches = tabTitleRegex.Matches(classes);
+                    var title = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(matches[0].Value.Substring(4).Replace('_', ' '));
+                    var url = configuration.ArmasBaseHost + tabLink.Attributes["href"].Value;
+
+                    Log.Debug(string.Format("Found tab {0} with the link {1}", title, url));
+                    yield return new PageInfo
+                    {
+                        Title = title,
+                        Url = url
+                    };
+                }
             }
         }
 
