@@ -7,6 +7,6 @@
     {
         void UpdateProductData(Product product);
 
-        void UpdatePriceInfo(Product product, Price price);
+        void UpdatePriceInfo(string product, Price price);
     }
 }

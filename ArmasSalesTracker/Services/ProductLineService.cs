@@ -129,17 +129,17 @@
             updateProductCommand.ExecuteNonQuery();
         }
 
-        public void UpdatePriceInfo(Product product, Price price)
+        public void UpdatePriceInfo(string productId, Price price)
         {
-            var latestPrice = GetLatestPrice(product.Id, price.Type);
+            var latestPrice = GetLatestPrice(productId, price.Type);
 
             if (latestPrice.Value != price.Value)
             {
-                InsertPricePoint(product.Id, price);
+                InsertPricePoint(productId, price);
             }
             else
             {
-                UpdatePricePointTimestamp(product.Id, latestPrice);
+                UpdatePricePointTimestamp(productId, latestPrice);
             }
         }
 

@@ -60,7 +60,7 @@
                         productService.UpdateProductData(product);
                         foreach (var price in product.PriceInfo)
                         {
-                            productService.UpdatePriceInfo(product, price);
+                            productService.UpdatePriceInfo(product.Id, price);
                         }
                     }
                 }
