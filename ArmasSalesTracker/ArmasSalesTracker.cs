@@ -51,6 +51,7 @@
                 var pages = scraper.GetAllPages();
 
                 Log.Info("Logging in as fremium");
+                scraper.LogInAsFreemium();
                 var products = scraper.GetFreemiumProductData();
                 foreach (var product in products)
                 {
