@@ -1,8 +1,10 @@
 ﻿namespace Asser.ArmasSalesTracker
 {
     using System;
+    using System.Collections.Generic;
     using System.Reflection;
     using Asser.ArmasSalesTracker.Configuration;
+    using Asser.ArmasSalesTracker.Models;
     using Asser.ArmasSalesTracker.Services;
     using log4net;
     using log4net.Config;
@@ -44,6 +46,8 @@
         {
             Log.Info("Getting latest data from ARMAS");
 
+            var startTime = DateTime.UtcNow;
+
             try
             {
                 Log.Info("Get tabs");
@@ -76,6 +80,9 @@
                     }
                 }
 
+                Log.Info("Getting products on sale");
+
+                var productsOnSale = GetProductsOnSale(startTime);
                 Log.Info("Completed successfully.");
             }
             catch (Exception ex)
@@ -84,6 +91,38 @@
             }
 
             Log.Info("Done.");
+        }
+
+        private IEnumerable<Product> GetProductsOnSale(DateTime startTime)
+        {
+            var products = productService.GetProducts();
+
+            foreach (var product in products)
+            {
+                var defaultPrice = priceService.GetLatestPrice(product.Id, PriceTypes.Default);
+                var currentPrice = priceService.GetLatestPrice(product.Id, PriceTypes.Current);
+                var premiumPrice = priceService.GetLatestPrice(product.Id, PriceTypes.Premium);
+
+                product.PriceInfo.Add(defaultPrice);
+                product.PriceInfo.Add(currentPrice);
+                product.PriceInfo.Add(premiumPrice);
+
+                if (currentPrice.Timestamp >= startTime && currentPrice.Timestamp >= defaultPrice.Timestamp)
+                {
+                    if (currentPrice.Value < defaultPrice.Value)
+                    {
+                        yield return product;
+                    }
+                }
+
+                if (premiumPrice.Timestamp > startTime && premiumPrice.Timestamp >= defaultPrice.Timestamp)
+                {
+                    if (premiumPrice.Value < (defaultPrice.Value * 0.8))
+                    {
+                        yield return product;
+                    }
+                }
+            }
         }
     }
 }
