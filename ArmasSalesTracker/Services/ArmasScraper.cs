@@ -53,13 +53,12 @@
 
         public IEnumerable<ProductLine> GetArmasProductLines()
         {
-            Log.Debug("Get all armas products");
-
+            Log.Info("Update all armas products");
             LogInToArmas(configuration.ArmasUsername, configuration.ArmasPassword);
 
             return
                 GetTabs()
-                    .SelectMany(tabInfo => GetSubPages(tabInfo.Url), (tabInfo, page) => new { tabInfo, page })
+                    .SelectMany(GetSubPages, (tabInfo, page) => new { tabInfo, page })
                     .SelectMany(@t => GetProductLines(@t.page, @t.tabInfo));
         }
 
@@ -88,7 +87,7 @@
 
         public IEnumerable<PageInfo> GetSubPages(PageInfo tabInfo)
         {
-            Log.Debug(string.Format("Get sub pages for page {1} ({0})", tabInfo.Url, tabInfo.Title));
+            Log.Info(string.Format("Acquiring sub pages for  {0}", tabInfo.Title));
             var web = new HtmlWeb();
             var doc = web.Load(tabInfo.Url);
 
@@ -119,7 +118,7 @@
 
         public IEnumerable<ProductLine> GetProductLines(PageInfo pageInfo, PageInfo tabInfo)
         {
-            Log.Info(string.Format("Get product lines for page {1} ({0})", pageInfo.Url, pageInfo.Title));
+            Log.Info(string.Format("Get product lines for page {0}", pageInfo.Title));
             var doc = GetPageContent(pageInfo.Url);
             var productLinksNode = doc.DocumentNode.SelectNodes("//div[@id='products']/div/div[starts-with(@class, 'product_listing')]");
 
@@ -179,10 +178,12 @@
 
         private void LogInToArmas(string username, string password)
         {
-            Log.Debug("Log in to armas");
+            Log.Info("Log in to armas");
+            Log.Debug("Aquiring login token");
             var web = new HtmlWeb { UseCookies = true, PostResponse = OnPostResponse };
             var doc = web.Load(configuration.ArmasLoginPageUrl);
             var loginToken = doc.DocumentNode.SelectSingleNode("//*[@id=\"login__token\"]").GetAttributeValue("value", string.Empty);
+            Log.Debug(string.Format("Login token: {0}", loginToken));
 
             var postData = new StringBuilder();
             postData.Append(string.Format("{0}={1}&", HttpUtility.UrlEncode("login[email]"), HttpUtility.UrlEncode(username)));
@@ -192,6 +193,8 @@
 
             var ascii = new ASCIIEncoding();
             var postBytes = ascii.GetBytes(postData.ToString());
+
+            Log.Debug("Sending login request");
 
             var request = (HttpWebRequest)WebRequest.Create(configuration.ArmasLoginPageUrl);
             request.AllowAutoRedirect = false;
@@ -208,6 +211,8 @@
             {
                 postStream.Write(postBytes, 0, postBytes.Length);
             }
+
+            Log.Debug("Processing login response");
 
             using (var response = request.GetResponse())
             {
