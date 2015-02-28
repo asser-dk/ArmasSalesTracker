@@ -70,6 +70,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\ArmasSalesTrackerModule.cs" />
+    <Compile Include="Models\PremiumPrice.cs" />
     <Compile Include="Models\Price.cs" />
     <Compile Include="Models\PriceTypes.cs" />
     <Compile Include="Models\Product.cs" />
