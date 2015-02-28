@@ -1,6 +1,5 @@
 ﻿namespace Asser.ArmasSalesTracker.Services
 {
-    using System;
     using System.Reflection;
     using Asser.ArmasSalesTracker.Configuration;
     using Asser.ArmasSalesTracker.Models;
@@ -13,7 +12,7 @@
 
         private readonly MySqlConnection connection;
 
-        private readonly MySqlCommand updateProductLineCommand;
+        private readonly MySqlCommand updateProductCommand;
 
         private readonly MySqlCommand insertProductPriceCommand;
 
@@ -28,12 +27,13 @@
             connection = new MySqlConnection(configuration.MySqlConnectionString);
             connection.Open();
 
-            updateProductLineCommand =
+            updateProductCommand =
                 new MySqlCommand(
-                    "INSERT INTO ProductLine (Id, Url, ImageUrl, Title, Category) "
+                    "INSERT INTO Product (Id, Url, ImageUrl, Title, Category) "
                     + "VALUES (@Id, @Url, @ImageUrl, @Title, @Category) "
                     + "ON DUPLICATE KEY UPDATE Url=VALUES(Url), ImageUrl=VALUES(ImageUrl), Title=VALUES(Title), Category=VALUES(Category)",
                     connection);
+
             insertProductPriceCommand = new MySqlCommand(
                 "INSERT INTO ProductPrice (Product, Price, PremiumPrice, Timestamp, DefaultPrice) VALUES (@Product, @Price, @PremiumPrice, @Timestamp, @DefaultPrice)",
                 connection);
@@ -44,23 +44,11 @@
             latestPriceCommand = new MySqlCommand("SELECT Price, PremiumPrice, DefaultPrice, Timestamp FROM ProductPrice WHERE Product = @ProductId ORDER BY Timestamp DESC LIMIT 1", connection);
             updateProductPriceCommand = new MySqlCommand("UPDATE ProductPrice SET Timestamp = NOW() WHERE Product = @ProductId AND Timestamp = @Timestamp LIMIT 1", connection);
 
-            updateProductLineCommand.Prepare();
+            updateProductCommand.Prepare();
             insertProductPriceCommand.Prepare();
             normalPriceCommand.Prepare();
             updateProductPriceCommand.Prepare();
             latestPriceCommand.Prepare();
-        }
-
-        public void UpdateProductLine(ProductLine productLine)
-        {
-            Log.Debug("Updating product line information.");
-            updateProductLineCommand.Parameters.Clear();
-            updateProductLineCommand.Parameters.AddWithValue("@Id", productLine.Id);
-            updateProductLineCommand.Parameters.AddWithValue("@Url", productLine.Url);
-            updateProductLineCommand.Parameters.AddWithValue("@ImageUrl", productLine.ImageUrl);
-            updateProductLineCommand.Parameters.AddWithValue("@Title", productLine.Title);
-            updateProductLineCommand.Parameters.AddWithValue("@Category", productLine.Category);
-            updateProductLineCommand.ExecuteNonQuery();
         }
 
         public void InsertProductPrice(ProductLine productLine)
@@ -111,21 +99,16 @@
             }
         }
 
-        public void UpdateProductData(ProductLine productLine)
+        public void UpdateProductData(Product productLine)
         {
-            Log.Info(string.Format("Updating {0} (Id: {1})", productLine.Title, productLine.Id));
-
-            try
-            {
-                UpdateProductLine(productLine);
-                UpdateLatestPrice(productLine);
-            }
-            catch (MySqlException ex)
-            {
-                Log.Error(string.Format("Error trying to product data {0}", productLine.Id), ex);
-
-                throw;
-            }
+            Log.Info(string.Format("Updating product data for \"{0}\" (Id: {1})", productLine.Title, productLine.Id));
+            updateProductCommand.Parameters.Clear();
+            updateProductCommand.Parameters.AddWithValue("@Id", productLine.Id);
+            updateProductCommand.Parameters.AddWithValue("@Url", productLine.Url);
+            updateProductCommand.Parameters.AddWithValue("@ImageUrl", productLine.ImageUrl);
+            updateProductCommand.Parameters.AddWithValue("@Title", productLine.Title);
+            updateProductCommand.Parameters.AddWithValue("@Category", productLine.Category);
+            updateProductCommand.ExecuteNonQuery();
         }
 
         public ProductPrice GetNormalPrices(string productId)
@@ -159,7 +142,7 @@
         public void Dispose()
         {
             insertProductPriceCommand.Dispose();
-            updateProductLineCommand.Dispose();
+            updateProductCommand.Dispose();
             connection.Close();
             connection.Dispose();
         }
