@@ -281,5 +281,36 @@
         {
             LogInToArmas(configuration.ArmasUsername, configuration.ArmasPassword);
         }
+
+        public IEnumerable<Product> GetProductAndFreemiumInfo(PageInfo pageInfo)
+        {
+            var document = GetPageContent(pageInfo.Url);
+
+            var productsNode = document.DocumentNode.SelectNodes("//div[@id='products']/div/div[starts-with(@class, 'product_listing')]");
+
+            foreach (var productNode in productsNode)
+            {
+                var product = GetProductData(productNode, pageInfo);
+            }
+        }
+
+        private Product GetProductData(HtmlNode productNode, PageInfo pageInfo)
+        {
+            var product = new Product();
+
+            product.Id = productNode.Id.Substring(7);
+            product.Title = productNode.SelectSingleNode("h4").InnerText;
+            product.Category = string.Format("{0} - {1}", pageInfo.Parent.Title, pageInfo.Title);
+            product.ImageUrl = configuration.ArmasBaseHost + productNode.SelectSingleNode("table/tr/td/a/img").Attributes["src"].Value;
+
+            product.Url = string.Format(
+                "{0}/{1}",
+                configuration.ArmasBaseUrl,
+                productNode.SelectSingleNode("table/tr/td[@class='product_image_container']/a").Attributes["href"].Value);
+
+            Log.Debug(string.Format("Found the product {0} (id: {1}) with the link {2}", product.Title, product.Id, product.Url));
+
+            return product;
+        }
     }
 }

@@ -1,7 +1,6 @@
 ﻿namespace Asser.ArmasSalesTracker
 {
     using System;
-    using System.Linq;
     using System.Reflection;
     using Asser.ArmasSalesTracker.Configuration;
     using Asser.ArmasSalesTracker.Models;

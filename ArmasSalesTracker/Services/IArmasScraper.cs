@@ -8,5 +8,7 @@
         IEnumerable<PageInfo> GetAllPages();
 
         void LogInAsFreemium();
+
+        IEnumerable<Product> GetProductAndFreemiumInfo(PageInfo pageInfo);
     }
 }
