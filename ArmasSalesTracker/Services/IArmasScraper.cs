@@ -6,5 +6,6 @@
     public interface IArmasScraper
     {
         IEnumerable<ProductLine> GetArmasProductLines();
+        IEnumerable<PageInfo> GetAllPages();
     }
 }

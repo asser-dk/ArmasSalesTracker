@@ -44,8 +44,12 @@
         public void RunJob()
         {
             Log.Info("Getting latest data from ARMAS");
+
             try
             {
+                Log.Info("Get tabs");
+                var pages = scraper.GetAllPages();
+
                 Log.Info("Logging in as fremium");
                 var products = scraper.GetFreemiumProductData();
                 foreach (var product in products)
