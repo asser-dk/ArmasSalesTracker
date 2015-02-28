@@ -41,7 +41,7 @@
                 new MySqlCommand(
                     "SELECT Price, PremiumPrice, DefaultPrice from ProductPrice WHERE Product = @ProductId ORDER BY Timestamp DESC LIMIT 1",
                     connection);
-            latestPriceCommand = new MySqlCommand("SELECT Price, PremiumPrice, Timestamp FROM ProductPrice WHERE Product = @ProductId ORDER BY Timestamp DESC LIMIT 1", connection);
+            latestPriceCommand = new MySqlCommand("SELECT Price, PremiumPrice, DefaultPrice, Timestamp FROM ProductPrice WHERE Product = @ProductId ORDER BY Timestamp DESC LIMIT 1", connection);
             updateProductPriceCommand = new MySqlCommand("UPDATE ProductPrice SET Timestamp = NOW() WHERE Product = @ProductId AND Timestamp = @Timestamp LIMIT 1", connection);
 
             updateProductLineCommand.Prepare();
