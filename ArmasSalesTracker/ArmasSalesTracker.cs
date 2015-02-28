@@ -70,15 +70,5 @@
 
             Log.Info("Done.");
         }
-
-        private void SendAlerts(ProductLine product)
-        {
-            var normalPrices = productLineService.GetNormalPrices(product.Id);
-
-            if (normalPrices.Price < product.Prices.Price || normalPrices.Premium < product.Prices.Premium)
-            {
-                subscriberService.SendAlerts(product, normalPrices);
-            }
-        }
     }
 }
