@@ -1,5 +1,6 @@
 ﻿namespace Asser.ArmasSalesTracker.Services
 {
+    using System.Collections.Generic;
     using System.Reflection;
     using Asser.ArmasSalesTracker.Configuration;
     using Asser.ArmasSalesTracker.Models;
@@ -14,6 +15,8 @@
 
         private readonly MySqlCommand updateProductCommand;
 
+        private readonly MySqlCommand getProductsCommand;
+
         public ProductService(IConfiguration configuration)
         {
             connection = new MySqlConnection(configuration.MySqlConnectionString);
@@ -26,12 +29,17 @@
                     + "ON DUPLICATE KEY UPDATE Url=VALUES(Url), ImageUrl=VALUES(ImageUrl), Title=VALUES(Title), Category=VALUES(Category)",
                     connection);
 
+            getProductsCommand = new MySqlCommand("SELECT Id, Url, ImageUrl, Title, Category FROM Product", connection);
+
             updateProductCommand.Prepare();
+            getProductsCommand.Prepare();
         }
 
         public void Dispose()
         {
+            Log.Debug("Disposing product service");
             updateProductCommand.Dispose();
+            getProductsCommand.Dispose();
             connection.Close();
             connection.Dispose();
         }
@@ -46,6 +54,23 @@
             updateProductCommand.Parameters.AddWithValue("@Title", productLine.Title);
             updateProductCommand.Parameters.AddWithValue("@Category", productLine.Category);
             updateProductCommand.ExecuteNonQuery();
+        }
+
+        public IEnumerable<Product> GetProducts()
+        {
+            Log.Info("Getting all products");
+            using (var reader = getProductsCommand.ExecuteReader())
+            {
+                yield return
+                    new Product
+                    {
+                        Id = reader.GetString("Id"),
+                        Category = reader.GetString("Category"),
+                        ImageUrl = reader.GetString("ImageUrl"),
+                        Title = reader.GetString("Title"),
+                        Url = reader.GetString("Url")
+                    };
+            }
         }
     }
 }
