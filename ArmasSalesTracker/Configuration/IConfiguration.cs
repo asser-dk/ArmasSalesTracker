@@ -17,5 +17,9 @@
         string ArmasLoginPageUrl { get; }
 
         string ArmasRegisterUrl { get; }
+
+        string ArmasPremiumUsername { get; }
+
+        string ArmasPremiumPassword { get; }
     }
 }

@@ -3,7 +3,6 @@
     using System;
     using System.Reflection;
     using Asser.ArmasSalesTracker.Configuration;
-    using Asser.ArmasSalesTracker.Models;
     using Asser.ArmasSalesTracker.Services;
     using log4net;
     using log4net.Config;
@@ -65,6 +64,9 @@
                         }
                     }
                 }
+
+                Log.Info("Logging in as premium");
+                scraper.LogInAsPremium();
 
                 Log.Info("Completed successfully.");
             }

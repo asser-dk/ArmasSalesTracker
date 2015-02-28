@@ -10,5 +10,7 @@
         void LogInAsFreemium();
 
         IEnumerable<Product> GetProductAndFreemiumInfo(PageInfo pageInfo);
+
+        void LogInAsPremium();
     }
 }
