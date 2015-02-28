@@ -6,7 +6,7 @@
     using log4net;
     using MySql.Data.MySqlClient;
 
-    public class ProductLineService : IProductLineService
+    public class ProductService : IProductService
     {
         private static readonly ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -14,7 +14,7 @@
 
         private readonly MySqlCommand updateProductCommand;
 
-        public ProductLineService(IConfiguration configuration)
+        public ProductService(IConfiguration configuration)
         {
             connection = new MySqlConnection(configuration.MySqlConnectionString);
             connection.Open();

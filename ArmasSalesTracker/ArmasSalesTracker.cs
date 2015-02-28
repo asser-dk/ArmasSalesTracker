@@ -14,13 +14,13 @@
 
         private readonly IArmasScraper scraper;
 
-        private readonly IProductLineService productService;
+        private readonly IProductService productService;
 
         private readonly IPriceService priceService;
 
         private readonly ISubscriberService subscriberService;
 
-        public ArmasSalesTracker(IArmasScraper scraper, IProductLineService productService, IPriceService priceService, ISubscriberService subscriberService)
+        public ArmasSalesTracker(IArmasScraper scraper, IProductService productService, IPriceService priceService, ISubscriberService subscriberService)
         {
             this.scraper = scraper;
             this.productService = productService;
