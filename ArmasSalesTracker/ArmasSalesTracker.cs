@@ -52,20 +52,6 @@
 
                 Log.Info("Logging in as fremium");
                 scraper.LogInAsFreemium();
-                var products = scraper.GetFreemiumProductData();
-                foreach (var product in products)
-                {
-                    productLineService.UpdateProductData(product);
-                    SendAlerts(product);
-                }
-
-                Log.Info("Logging in as premium");
-                products = scraper.GetPremiumProductData();
-                foreach (var product in products)
-                {
-                    productLineService.UpdatePremiumPrice(product);
-                    SendAlerts(product);
-                }
 
                 Log.Info("Completed successfully.");
             }
