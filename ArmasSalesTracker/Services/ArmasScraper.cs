@@ -63,7 +63,7 @@
                     .SelectMany(@t => GetProductLines(@t.page, @t.tabInfo));
         }
 
-        public IEnumerable<PageInfo> GetTabs()
+        public IEnumerable<TabInfo> GetTabs()
         {
             Log.Info("Acquiring tabs");
             var request = (HttpWebRequest)WebRequest.Create(configuration.ArmasFrontpagePageUri);
@@ -80,11 +80,11 @@
                 {
                     var classes = tabLink.Attributes["class"].Value;
                     var matches = tabTitleRegex.Matches(classes);
-                    var title = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(matches[0].Value.Substring(4).Replace('_', ' '));
+                    var title = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(matches[0].Value.Substring(4).Replace('_', ' ')).Trim();
                     var url = configuration.ArmasBaseHost + tabLink.Attributes["href"].Value;
 
                     Log.Debug(string.Format("Found tab {0} with the link {1}", title, url));
-                    yield return new PageInfo
+                    yield return new TabInfo
                     {
                         Title = title,
                         Url = url
@@ -93,7 +93,7 @@
             }
         }
 
-        public IEnumerable<PageInfo> GetSubPages(PageInfo tabInfo)
+        public IEnumerable<PageInfo> GetSubPages(TabInfo tabInfo)
         {
             Log.Info(string.Format("Acquiring sub pages for  {0}", tabInfo.Title));
             var web = new HtmlWeb();
@@ -109,13 +109,13 @@
 
                 if (anchorNode != null)
                 {
-                    pageInfo.Title = anchorNode.InnerText;
+                    pageInfo.Title = anchorNode.InnerText.Trim();
                     pageInfo.Url = string.Format("{0}/{1}", configuration.ArmasBaseHost, anchorNode.Attributes["href"].Value);
                 }
                 else
                 {
                     pageInfo.Url = tabInfo.Url;
-                    pageInfo.Title = subPageNode.InnerText;
+                    pageInfo.Title = subPageNode.InnerText.Trim();
                 }
 
                 Log.Debug(string.Format("Found the subpage {0} with the link {1}", pageInfo.Title, pageInfo.Url));
@@ -124,7 +124,7 @@
             }
         }
 
-        public IEnumerable<ProductLine> GetProductLines(PageInfo pageInfo, PageInfo tabInfo)
+        public IEnumerable<ProductLine> GetProductLines(PageInfo pageInfo)
         {
             Log.Info(string.Format("Get product lines for page {0}", pageInfo.Title));
             var doc = GetPageContent(pageInfo.Url);
@@ -133,7 +133,7 @@
             foreach (var productLineNode in productLinksNode)
             {
                 var productLine = new ProductLine();
-                productLine.Category = string.Format("{0} - {1}", tabInfo.Title, pageInfo.Title);
+                productLine.Category = string.Format("{0} - {1}", pageInfo.Parent.Title, pageInfo.Title);
 
                 productLine.Id = productLineNode.Id.Substring(7);
 
