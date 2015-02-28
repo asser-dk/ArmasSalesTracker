@@ -105,13 +105,15 @@
             }
             else
             {
+                Log.Debug("Inserting new product price line");
+
                 InsertProductPrice(productLine);
             }
         }
 
         public void UpdateProductData(ProductLine productLine)
         {
-            Log.Debug(string.Format("Updating product line {0}", productLine.Id));
+            Log.Info(string.Format("Updating {0} (Id: {1})", productLine.Title, productLine.Id));
 
             try
             {
