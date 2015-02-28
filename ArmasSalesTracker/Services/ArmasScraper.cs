@@ -113,66 +113,121 @@
             }
         }
 
-        public IEnumerable<ProductLine> GetProductLines(PageInfo pageInfo)
+        public IEnumerable<PageInfo> GetAllPages()
         {
-            Log.Info(string.Format("Get product lines for page {0}", pageInfo.Title));
-            var doc = GetPageContent(pageInfo.Url);
-            var productLinksNode = doc.DocumentNode.SelectNodes("//div[@id='products']/div/div[starts-with(@class, 'product_listing')]");
+            return GetTabs().SelectMany(GetSubPages);
+        }
 
-            foreach (var productLineNode in productLinksNode)
+        public void LogInAsFreemium()
+        {
+            LogInToArmas(configuration.ArmasUsername, configuration.ArmasPassword);
+        }
+
+        public IEnumerable<Product> GetProductAndFreemiumInfo(PageInfo pageInfo)
+        {
+            var document = GetPageContent(pageInfo.Url);
+
+            var productsNode = document.DocumentNode.SelectNodes("//div[@id='products']/div/div[starts-with(@class, 'product_listing')]");
+
+            foreach (var productNode in productsNode)
             {
-                var productLine = new ProductLine();
-                productLine.Category = string.Format("{0} - {1}", pageInfo.Parent.Title, pageInfo.Title);
+                var product = GetProductData(productNode, pageInfo);
+                var defaultPrice = GetDefaultPrice(productNode);
+                var discount = GetCurrentPrice(productNode);
 
-                productLine.Id = productLineNode.Id.Substring(7);
+                product.PriceInfo.Add(defaultPrice);
+                product.PriceInfo.Add(discount);
 
-                productLine.Url = string.Format(
-                    "{0}/{1}",
-                    configuration.ArmasBaseUrl,
-                    productLineNode.SelectSingleNode("table/tr/td[@class='product_image_container']/a").Attributes["href"].Value);
+                yield return product;
+            }
+        }
 
-                productLine.ImageUrl = configuration.ArmasBaseHost + productLineNode.SelectSingleNode("table/tr/td/a/img").Attributes["src"].Value;
+        public void LogInAsPremium()
+        {
+            LogInToArmas(configuration.ArmasPremiumUsername, configuration.ArmasPremiumPassword);
+        }
 
-                productLine.Title = productLineNode.SelectSingleNode("h4").InnerText;
+        public IEnumerable<PremiumPrice> GetPremiumPrices(PageInfo pageInfo)
+        {
+            var document = GetPageContent(pageInfo.Url);
+            var productsNode = document.DocumentNode.SelectNodes("//div[@id='products']/div/div[starts-with(@class, 'product_listing')]");
 
-                var priceNode =
-                    productLineNode.SelectSingleNode(
-                        "table/tr/td[@class='product_price_container']/span/b/span[@class='product_g1c_price']");
-
-                productLine.Prices.Price =
-                    int.Parse(priceNode.SelectSingleNode("text()").InnerText.Replace(" G1C", string.Empty));
-
-                var defaultPriceNode = priceNode.SelectSingleNode("strike");
-
-                if (defaultPriceNode != null)
+            foreach (var productNode in productsNode)
+            {
+                var premiumPrice = new PremiumPrice
                 {
-                    productLine.Prices.DefaultPrice = int.Parse(defaultPriceNode.InnerText);
-                }
-                else
-                {
-                    productLine.Prices.DefaultPrice = productLine.Prices.Price;
-                }
+                    ProductId = productNode.Id.Substring(7),
+                    Price = new Price { Type = PriceTypes.Premium, Timestamp = DateTime.UtcNow }
+                };
 
                 var premiumPriceNode =
-                    productLineNode.SelectSingleNode("table/tr/td[@class='product_price_container']/span/b/span/span[contains(@class, 'premium_price')]");
+                    productNode.SelectSingleNode(
+                        "table/tr/td[@class='product_price_container']/span/b/span/span[contains(@class, 'premium_price')]");
 
-                if (premiumPriceNode != null)
+                if (premiumPriceNode == null)
                 {
-                    productLine.Prices.Premium =
-                    int.Parse(
-                        premiumPriceNode
-                            .InnerText.Replace(" G1C", string.Empty));
+                    continue;
                 }
 
-                Log.Debug(
-                    string.Format(
-                        "Found the product {0} (id: {1}) with the link {2}",
-                        productLine.Title,
-                        productLine.Id,
-                        productLine.Url));
-
-                yield return productLine;
+                premiumPrice.Price.Value = int.Parse(premiumPriceNode.InnerText.Replace(" G1C", string.Empty));
+                yield return premiumPrice;
             }
+        }
+
+        private static Price GetCurrentPrice(HtmlNode productNode)
+        {
+            var priceNode = productNode.SelectSingleNode("table/tr/td[@class='product_price_container']/span/b/span[@class='product_g1c_price']/text()");
+
+            var price = new Price
+            {
+                Type = PriceTypes.Current,
+                Timestamp = DateTime.UtcNow,
+                Value = int.Parse(priceNode.InnerText.Replace(" G1C", string.Empty))
+            };
+
+            return price;
+        }
+
+        private static Price GetDefaultPrice(HtmlNode productNode)
+        {
+            var priceNode = productNode.SelectSingleNode("table/tr/td[@class='product_price_container']/span/b/span[@class='product_g1c_price']");
+
+            var price = new Price
+            {
+                Type = PriceTypes.Default,
+                Timestamp = DateTime.UtcNow,
+                Value = int.Parse(priceNode.SelectSingleNode("text()").InnerText.Replace(" G1C", string.Empty))
+            };
+
+            var defaultPriceNode = priceNode.SelectSingleNode("strike");
+
+            if (defaultPriceNode != null)
+            {
+                price.Value = int.Parse(defaultPriceNode.InnerText);
+            }
+
+            return price;
+        }
+
+        private Product GetProductData(HtmlNode productNode, PageInfo pageInfo)
+        {
+            var product = new Product
+            {
+                Id = productNode.Id.Substring(7),
+                Title = productNode.SelectSingleNode("h4").InnerText,
+                Category = string.Format("{0} - {1}", pageInfo.Parent.Title, pageInfo.Title),
+            };
+
+            product.ImageUrl = configuration.ArmasBaseHost + productNode.SelectSingleNode("table/tr/td/a/img").Attributes["src"].Value;
+
+            product.Url = string.Format(
+                "{0}/{1}",
+                configuration.ArmasBaseUrl,
+                productNode.SelectSingleNode("table/tr/td[@class='product_image_container']/a").Attributes["href"].Value);
+
+            Log.Debug(string.Format("Found the product {0} (id: {1}) with the link {2}", product.Title, product.Id, product.Url));
+
+            return product;
         }
 
         private void LogInToArmas(string username, string password)
@@ -271,123 +326,6 @@
             }
 
             return container;
-        }
-
-        public IEnumerable<PageInfo> GetAllPages()
-        {
-            return GetTabs().SelectMany(GetSubPages);
-        }
-
-        public void LogInAsFreemium()
-        {
-            LogInToArmas(configuration.ArmasUsername, configuration.ArmasPassword);
-        }
-
-        public IEnumerable<Product> GetProductAndFreemiumInfo(PageInfo pageInfo)
-        {
-            var document = GetPageContent(pageInfo.Url);
-
-            var productsNode = document.DocumentNode.SelectNodes("//div[@id='products']/div/div[starts-with(@class, 'product_listing')]");
-
-            foreach (var productNode in productsNode)
-            {
-                var product = GetProductData(productNode, pageInfo);
-                var defaultPrice = GetDefaultPrice(productNode);
-                var discount = GetCurrentPrice(productNode);
-
-                product.PriceInfo.Add(defaultPrice);
-                product.PriceInfo.Add(discount);
-
-                yield return product;
-            }
-        }
-
-        public void LogInAsPremium()
-        {
-            LogInToArmas(configuration.ArmasPremiumUsername, configuration.ArmasPremiumPassword);
-        }
-
-        public IEnumerable<PremiumPrice> GetPremiumPrices(PageInfo pageInfo)
-        {
-            var document = GetPageContent(pageInfo.Url);
-            var productsNode = document.DocumentNode.SelectNodes("//div[@id='products']/div/div[starts-with(@class, 'product_listing')]");
-
-            foreach (var productNode in productsNode)
-            {
-                var premiumPrice = new PremiumPrice
-                {
-                    ProductId = productNode.Id.Substring(7),
-                    Price = new Price { Type = PriceTypes.Premium, Timestamp = DateTime.UtcNow }
-                };
-
-                var premiumPriceNode =
-                    productNode.SelectSingleNode(
-                        "table/tr/td[@class='product_price_container']/span/b/span/span[contains(@class, 'premium_price')]");
-
-                if (premiumPriceNode == null)
-                {
-                    continue;
-                }
-
-                premiumPrice.Price.Value = int.Parse(premiumPriceNode.InnerText.Replace(" G1C", string.Empty));
-                yield return premiumPrice;
-            }
-        }
-
-        private Price GetCurrentPrice(HtmlNode productNode)
-        {
-            var priceNode = productNode.SelectSingleNode("table/tr/td[@class='product_price_container']/span/b/span[@class='product_g1c_price']/text()");
-
-            var price = new Price
-            {
-                Type = PriceTypes.Current,
-                Timestamp = DateTime.UtcNow,
-                Value = int.Parse(priceNode.InnerText.Replace(" G1C", string.Empty))
-            };
-
-            return price;
-        }
-
-        private Price GetDefaultPrice(HtmlNode productNode)
-        {
-            var priceNode = productNode.SelectSingleNode("table/tr/td[@class='product_price_container']/span/b/span[@class='product_g1c_price']");
-
-            var price = new Price
-            {
-                Type = PriceTypes.Default,
-                Timestamp = DateTime.UtcNow,
-                Value = int.Parse(priceNode.SelectSingleNode("text()").InnerText.Replace(" G1C", string.Empty))
-            };
-
-            var defaultPriceNode = priceNode.SelectSingleNode("strike");
-
-            if (defaultPriceNode != null)
-            {
-                price.Value = int.Parse(defaultPriceNode.InnerText);
-            }
-
-            return price;
-        }
-
-        private Product GetProductData(HtmlNode productNode, PageInfo pageInfo)
-        {
-            var product = new Product
-            {
-                Id = productNode.Id.Substring(7),
-                Title = productNode.SelectSingleNode("h4").InnerText,
-                Category = string.Format("{0} - {1}", pageInfo.Parent.Title, pageInfo.Title),
-            };
-
-            product.ImageUrl = configuration.ArmasBaseHost + productNode.SelectSingleNode("table/tr/td/a/img").Attributes["src"].Value;
-
-            product.Url = string.Format(
-                "{0}/{1}",
-                configuration.ArmasBaseUrl,
-                productNode.SelectSingleNode("table/tr/td[@class='product_image_container']/a").Attributes["href"].Value);
-
-            Log.Debug(string.Format("Found the product {0} (id: {1}) with the link {2}", product.Title, product.Id, product.Url));
-
-            return product;
         }
     }
 }
