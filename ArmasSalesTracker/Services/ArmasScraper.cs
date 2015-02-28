@@ -296,11 +296,13 @@
 
         private Product GetProductData(HtmlNode productNode, PageInfo pageInfo)
         {
-            var product = new Product();
+            var product = new Product
+            {
+                Id = productNode.Id.Substring(7),
+                Title = productNode.SelectSingleNode("h4").InnerText,
+                Category = string.Format("{0} - {1}", pageInfo.Parent.Title, pageInfo.Title),
+            };
 
-            product.Id = productNode.Id.Substring(7);
-            product.Title = productNode.SelectSingleNode("h4").InnerText;
-            product.Category = string.Format("{0} - {1}", pageInfo.Parent.Title, pageInfo.Title);
             product.ImageUrl = configuration.ArmasBaseHost + productNode.SelectSingleNode("table/tr/td/a/img").Attributes["src"].Value;
 
             product.Url = string.Format(
