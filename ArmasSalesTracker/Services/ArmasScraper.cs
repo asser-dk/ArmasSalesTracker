@@ -188,7 +188,9 @@
 
         private void LogInToArmas(string username, string password)
         {
-            Log.Info("Log in to armas");
+            Log.Debug("Clearing cookies");
+            Cookies = new CookieCollection();
+
             Log.Debug("Aquiring login token");
             var web = new HtmlWeb { UseCookies = true, PostResponse = OnPostResponse };
             var doc = web.Load(configuration.ArmasLoginPageUrl);
@@ -285,6 +287,11 @@
         public IEnumerable<PageInfo> GetAllPages()
         {
             return GetTabs().SelectMany(GetSubPages);
+        }
+
+        public void LogInAsFreemium()
+        {
+            LogInToArmas(configuration.ArmasUsername, configuration.ArmasPassword);
         }
     }
 }

@@ -7,5 +7,7 @@
     {
         IEnumerable<ProductLine> GetArmasProductLines();
         IEnumerable<PageInfo> GetAllPages();
+
+        void LogInAsFreemium();
     }
 }
