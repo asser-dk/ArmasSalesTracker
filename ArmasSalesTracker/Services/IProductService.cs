@@ -3,7 +3,7 @@
     using System;
     using Asser.ArmasSalesTracker.Models;
 
-    public interface IProductLineService : IDisposable
+    public interface IProductService : IDisposable
     {
         void UpdateProductData(Product product);
     }

@@ -20,7 +20,7 @@
 
             var tracker = new ArmasSalesTracker(
                 kernel.Get<IArmasScraper>(),
-                kernel.Get<IProductLineService>(),
+                kernel.Get<IProductService>(),
                 kernel.Get<ISubscriberService>());
 
             tracker.RunJob();
