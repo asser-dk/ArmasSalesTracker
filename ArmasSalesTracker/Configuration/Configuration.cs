@@ -67,5 +67,21 @@
                 return ConfigurationManager.AppSettings["Armas.RegisterUrl"];
             }
         }
+
+        public string ArmasPremiumUsername
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["Armas.Premium.Username"];
+            }
+        }
+
+        public string ArmasPremiumPassword
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["Armas.Premium.Password"];
+            }
+        }
     }
 }
