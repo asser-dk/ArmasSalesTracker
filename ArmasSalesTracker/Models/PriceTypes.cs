@@ -4,7 +4,7 @@
     {
         Default = 1,
 
-        Discount = 2,
+        Current = 2,
 
         Premium = 3
     }
