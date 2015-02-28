@@ -1,5 +1,6 @@
 ﻿namespace Asser.ArmasSalesTracker.Services
 {
+    using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
@@ -291,7 +292,49 @@
             foreach (var productNode in productsNode)
             {
                 var product = GetProductData(productNode, pageInfo);
+                var defaultPrice = GetDefaultPrice(productNode);
+                var discount = GetCurrentPrice(productNode);
+
+                product.PriceInfo.Add(defaultPrice);
+                product.PriceInfo.Add(discount);
+
+                yield return product;
             }
+        }
+
+        private Price GetCurrentPrice(HtmlNode productNode)
+        {
+            var priceNode = productNode.SelectSingleNode("table/tr/td[@class='product_price_container']/span/b/span[@class='product_g1c_price']/text()");
+
+            var price = new Price
+            {
+                Type = PriceTypes.Default,
+                Timestamp = DateTime.UtcNow,
+                Value = int.Parse(priceNode.InnerText.Replace(" G1C", string.Empty))
+            };
+
+            return price;
+        }
+
+        private Price GetDefaultPrice(HtmlNode productNode)
+        {
+            var priceNode = productNode.SelectSingleNode("table/tr/td[@class='product_price_container']/span/b/span[@class='product_g1c_price']");
+
+            var price = new Price
+            {
+                Type = PriceTypes.Default,
+                Timestamp = DateTime.UtcNow,
+                Value = int.Parse(priceNode.SelectSingleNode("text()").InnerText.Replace(" G1C", string.Empty))
+            };
+
+            var defaultPriceNode = priceNode.SelectSingleNode("strike");
+
+            if (defaultPriceNode != null)
+            {
+                price.Value = int.Parse(defaultPriceNode.InnerText);
+            }
+
+            return price;
         }
 
         private Product GetProductData(HtmlNode productNode, PageInfo pageInfo)
