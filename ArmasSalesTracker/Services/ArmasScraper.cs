@@ -28,7 +28,7 @@
             this.configuration = configuration;
         }
 
-        public CookieContainer Cookies { get; set; }
+        public CookieCollection Cookies { get; set; }
 
         public HtmlDocument GetPageContent(string url)
         {
@@ -36,7 +36,7 @@
             request.Method = "POST";
             request.UserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.115 Safari/537.36";
             request.ContentType = "application/x-www-form-urlencoded";
-            request.CookieContainer = Cookies;
+            request.CookieContainer = GetCookies();
             request.Referer = url;
             request.Host = configuration.ArmasBaseHost.Replace("http://", string.Empty);
 
@@ -202,7 +202,7 @@
             request.UserAgent = "Mozilla/5.0 (Windows NT 6.3; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/40.0.2214.115 Safari/537.36";
             request.ContentType = "application/x-www-form-urlencoded";
             request.ContentLength = postBytes.Length;
-            request.CookieContainer = Cookies;
+            request.CookieContainer = GetCookies();
             request.Referer = configuration.ArmasLoginPageUrl;
             request.Host = configuration.ArmasRegisterUrl.Replace("https://", string.Empty);
             request.Headers.Add("Origin", configuration.ArmasRegisterUrl);
@@ -223,7 +223,7 @@
                 }
 
                 var redirectRequest = (HttpWebRequest)WebRequest.Create(response.ResponseUri);
-                redirectRequest.CookieContainer = Cookies;
+                redirectRequest.CookieContainer = GetCookies();
 
                 using (var redirectResponse = redirectRequest.GetResponse())
                 {
@@ -251,14 +251,23 @@
 
         private void OnPostResponse(HttpWebRequest request, HttpWebResponse response)
         {
-            var container = new CookieContainer(response.Cookies.Count);
+            Cookies = new CookieCollection();
 
             foreach (var cookie in response.Cookies)
+            {
+                Cookies.Add((Cookie)cookie);
+            }
+        }
+
+        private CookieContainer GetCookies()
+        {
+            var container = new CookieContainer();
+            foreach (var cookie in Cookies)
             {
                 container.Add((Cookie)cookie);
             }
 
-            Cookies = container;
+            return container;
         }
     }
 }
