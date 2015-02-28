@@ -15,14 +15,14 @@
 
         private readonly IArmasScraper scraper;
 
-        private readonly IProductLineService productLineService;
+        private readonly IProductLineService productService;
 
         private readonly ISubscriberService subscriberService;
 
-        public ArmasSalesTracker(IArmasScraper scraper, IProductLineService productLineService, ISubscriberService subscriberService)
+        public ArmasSalesTracker(IArmasScraper scraper, IProductLineService productService, ISubscriberService subscriberService)
         {
             this.scraper = scraper;
-            this.productLineService = productLineService;
+            this.productService = productService;
             this.subscriberService = subscriberService;
         }
 
@@ -55,6 +55,10 @@
                 foreach (var pageInfo in pages)
                 {
                     var products = scraper.GetProductAndFreemiumInfo(pageInfo);
+                    foreach (var product in products)
+                    {
+                        productService.UpdateProductData(product);
+                    }
                 }
 
                 Log.Info("Completed successfully.");
