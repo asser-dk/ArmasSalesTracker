@@ -1,6 +1,7 @@
 ﻿namespace Asser.ArmasSalesTracker
 {
     using System;
+    using System.Linq;
     using System.Reflection;
     using Asser.ArmasSalesTracker.Configuration;
     using Asser.ArmasSalesTracker.Models;
@@ -52,6 +53,10 @@
 
                 Log.Info("Logging in as fremium");
                 scraper.LogInAsFreemium();
+                foreach (var pageInfo in pages)
+                {
+                    var products = scraper.GetProductAndFreemiumInfo(pageInfo);
+                }
 
                 Log.Info("Completed successfully.");
             }

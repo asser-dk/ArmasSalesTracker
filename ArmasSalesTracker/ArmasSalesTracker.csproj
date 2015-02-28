@@ -72,6 +72,7 @@
     <Compile Include="Configuration\ArmasSalesTrackerModule.cs" />
     <Compile Include="Models\Price.cs" />
     <Compile Include="Models\PriceTypes.cs" />
+    <Compile Include="Models\TabInfo.cs" />
     <Compile Include="Services\ArmasScraper.cs" />
     <Compile Include="ArmasSalesTracker.cs" />
     <Compile Include="Configuration\Configuration.cs" />
