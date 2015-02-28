@@ -302,6 +302,11 @@
             }
         }
 
+        public void LogInAsPremium()
+        {
+            LogInToArmas(configuration.ArmasPremiumUsername, configuration.ArmasPremiumPassword);
+        }
+
         private Price GetCurrentPrice(HtmlNode productNode)
         {
             var priceNode = productNode.SelectSingleNode("table/tr/td[@class='product_price_container']/span/b/span[@class='product_g1c_price']/text()");
