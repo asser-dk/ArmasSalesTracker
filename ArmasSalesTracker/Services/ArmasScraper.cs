@@ -313,7 +313,7 @@
 
             var price = new Price
             {
-                Type = PriceTypes.Default,
+                Type = PriceTypes.Current,
                 Timestamp = DateTime.UtcNow,
                 Value = int.Parse(priceNode.InnerText.Replace(" G1C", string.Empty))
             };
