@@ -1,6 +1,7 @@
 ﻿namespace Asser.ArmasSalesTracker
 {
     using System;
+    using System.Linq;
     using System.Reflection;
     using Asser.ArmasSalesTracker.Configuration;
     using Asser.ArmasSalesTracker.Services;
@@ -67,6 +68,14 @@
 
                 Log.Info("Logging in as premium");
                 scraper.LogInAsPremium();
+                foreach (var pageInfo in pages)
+                {
+                    var premiumPrices = scraper.GetPremiumPrices(pageInfo);
+                    foreach (var premiumPrice in premiumPrices)
+                    {
+                        productService.UpdatePriceInfo(premiumPrice.ProductId, premiumPrice.Price);
+                    }
+                }
 
                 Log.Info("Completed successfully.");
             }

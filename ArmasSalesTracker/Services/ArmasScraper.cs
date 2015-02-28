@@ -307,6 +307,33 @@
             LogInToArmas(configuration.ArmasPremiumUsername, configuration.ArmasPremiumPassword);
         }
 
+        public IEnumerable<PremiumPrice> GetPremiumPrices(PageInfo pageInfo)
+        {
+            var document = GetPageContent(pageInfo.Url);
+            var productsNode = document.DocumentNode.SelectNodes("//div[@id='products']/div/div[starts-with(@class, 'product_listing')]");
+
+            foreach (var productNode in productsNode)
+            {
+                var premiumPrice = new PremiumPrice
+                {
+                    ProductId = productNode.Id.Substring(7),
+                    Price = new Price { Type = PriceTypes.Premium, Timestamp = DateTime.UtcNow }
+                };
+
+                var premiumPriceNode =
+                    productNode.SelectSingleNode(
+                        "table/tr/td[@class='product_price_container']/span/b/span/span[contains(@class, 'premium_price')]");
+
+                if (premiumPriceNode == null)
+                {
+                    continue;
+                }
+
+                premiumPrice.Price.Value = int.Parse(premiumPriceNode.InnerText.Replace(" G1C", string.Empty));
+                yield return premiumPrice;
+            }
+        }
+
         private Price GetCurrentPrice(HtmlNode productNode)
         {
             var priceNode = productNode.SelectSingleNode("table/tr/td[@class='product_price_container']/span/b/span[@class='product_g1c_price']/text()");

@@ -12,5 +12,7 @@
         IEnumerable<Product> GetProductAndFreemiumInfo(PageInfo pageInfo);
 
         void LogInAsPremium();
+
+        IEnumerable<PremiumPrice> GetPremiumPrices(PageInfo pageInfo);
     }
 }
