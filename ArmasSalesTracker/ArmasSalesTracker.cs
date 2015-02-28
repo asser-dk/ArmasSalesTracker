@@ -1,7 +1,6 @@
 ﻿namespace Asser.ArmasSalesTracker
 {
     using System;
-    using System.Linq;
     using System.Reflection;
     using Asser.ArmasSalesTracker.Configuration;
     using Asser.ArmasSalesTracker.Services;
@@ -17,12 +16,15 @@
 
         private readonly IProductLineService productService;
 
+        private readonly IPriceService priceService;
+
         private readonly ISubscriberService subscriberService;
 
-        public ArmasSalesTracker(IArmasScraper scraper, IProductLineService productService, ISubscriberService subscriberService)
+        public ArmasSalesTracker(IArmasScraper scraper, IProductLineService productService, IPriceService priceService, ISubscriberService subscriberService)
         {
             this.scraper = scraper;
             this.productService = productService;
+            this.priceService = priceService;
             this.subscriberService = subscriberService;
         }
 
@@ -31,10 +33,7 @@
             XmlConfigurator.Configure();
             var kernel = new StandardKernel(new ArmasSalesTrackerModule());
 
-            var tracker = new ArmasSalesTracker(
-                kernel.Get<IArmasScraper>(),
-                kernel.Get<IProductLineService>(),
-                kernel.Get<ISubscriberService>());
+            var tracker = kernel.Get<ArmasSalesTracker>();
 
             tracker.RunJob();
 
@@ -61,7 +60,7 @@
                         productService.UpdateProductData(product);
                         foreach (var price in product.PriceInfo)
                         {
-                            productService.UpdatePriceInfo(product.Id, price);
+                            priceService.UpdatePriceInfo(product.Id, price);
                         }
                     }
                 }
@@ -73,7 +72,7 @@
                     var premiumPrices = scraper.GetPremiumPrices(pageInfo);
                     foreach (var premiumPrice in premiumPrices)
                     {
-                        productService.UpdatePriceInfo(premiumPrice.ProductId, premiumPrice.Price);
+                        priceService.UpdatePriceInfo(premiumPrice.ProductId, premiumPrice.Price);
                     }
                 }
 

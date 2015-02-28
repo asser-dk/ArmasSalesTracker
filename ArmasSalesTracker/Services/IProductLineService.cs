@@ -6,7 +6,5 @@
     public interface IProductLineService : IDisposable
     {
         void UpdateProductData(Product product);
-
-        void UpdatePriceInfo(string product, Price price);
     }
 }

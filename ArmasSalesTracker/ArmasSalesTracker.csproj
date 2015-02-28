@@ -87,12 +87,16 @@
     <Compile Include="Services\IArmasScraper.cs">
       <DependentUpon>ArmasScraper.cs</DependentUpon>
     </Compile>
+    <Compile Include="Services\IPriceService.cs">
+      <DependentUpon>PriceService.cs</DependentUpon>
+    </Compile>
     <Compile Include="Services\IProductLineService.cs">
       <DependentUpon>ProductLineService.cs</DependentUpon>
     </Compile>
     <Compile Include="Services\ISubscriberService.cs">
       <DependentUpon>SubscriberService.cs</DependentUpon>
     </Compile>
+    <Compile Include="Services\PriceService.cs" />
     <Compile Include="Services\ProductLineService.cs" />
     <Compile Include="Models\ProductPrice.cs" />
     <Compile Include="Services\SubscriberService.cs" />
