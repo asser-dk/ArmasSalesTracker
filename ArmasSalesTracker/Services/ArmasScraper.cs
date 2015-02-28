@@ -10,7 +10,6 @@
     using System.Text;
     using System.Text.RegularExpressions;
     using System.Web;
-    using System.Web.UI.WebControls;
     using Asser.ArmasSalesTracker.Configuration;
     using Asser.ArmasSalesTracker.Models;
     using HtmlAgilityPack;
@@ -50,17 +49,6 @@
 
                 return document;
             }
-        }
-
-        public IEnumerable<ProductLine> GetArmasProductLines()
-        {
-            Log.Info("Update all armas products");
-            LogInToArmas(configuration.ArmasUsername, configuration.ArmasPassword);
-
-            return
-                GetTabs()
-                    .SelectMany(GetSubPages, (tabInfo, page) => new { tabInfo, page })
-                    .SelectMany(@t => GetProductLines(@t.page, @t.tabInfo));
         }
 
         public IEnumerable<TabInfo> GetTabs()
