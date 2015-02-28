@@ -10,6 +10,7 @@
     using System.Text;
     using System.Text.RegularExpressions;
     using System.Web;
+    using System.Web.UI.WebControls;
     using Asser.ArmasSalesTracker.Configuration;
     using Asser.ArmasSalesTracker.Models;
     using HtmlAgilityPack;
@@ -279,6 +280,11 @@
             }
 
             return container;
+        }
+
+        public IEnumerable<PageInfo> GetAllPages()
+        {
+            return GetTabs().SelectMany(GetSubPages);
         }
     }
 }
