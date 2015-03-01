@@ -70,6 +70,15 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Configuration\ArmasSalesTrackerModule.cs" />
+    <Compile Include="Models\PremiumPrice.cs" />
+    <Compile Include="Models\Price.cs" />
+    <Compile Include="Models\PriceTypes.cs" />
+    <Compile Include="Models\Product.cs" />
+    <Compile Include="Models\TabInfo.cs" />
+    <Compile Include="Services\IPremiumNotifierService.cs">
+      <DependentUpon>PremiumNotifierService.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Services\PremiumNotifierService.cs" />
     <Compile Include="Services\ArmasScraper.cs" />
     <Compile Include="ArmasSalesTracker.cs" />
     <Compile Include="Configuration\Configuration.cs" />
@@ -77,19 +86,21 @@
       <DependentUpon>Configuration.cs</DependentUpon>
     </Compile>
     <Compile Include="Models\PageInfo.cs" />
-    <Compile Include="Models\ProductLine.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Services\IArmasScraper.cs">
       <DependentUpon>ArmasScraper.cs</DependentUpon>
     </Compile>
-    <Compile Include="Services\IProductLineService.cs">
-      <DependentUpon>ProductLineService.cs</DependentUpon>
+    <Compile Include="Services\IPriceService.cs">
+      <DependentUpon>PriceService.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Services\IProductService.cs">
+      <DependentUpon>ProductService.cs</DependentUpon>
     </Compile>
     <Compile Include="Services\ISubscriberService.cs">
       <DependentUpon>SubscriberService.cs</DependentUpon>
     </Compile>
-    <Compile Include="Services\ProductLineService.cs" />
-    <Compile Include="Models\ProductPrice.cs" />
+    <Compile Include="Services\PriceService.cs" />
+    <Compile Include="Services\ProductService.cs" />
     <Compile Include="Services\SubscriberService.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -97,6 +108,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="MailTemplateNoPremium.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="MailTemplate.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

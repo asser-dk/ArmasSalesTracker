@@ -67,5 +67,37 @@
                 return ConfigurationManager.AppSettings["Armas.RegisterUrl"];
             }
         }
+
+        public string ArmasPremiumUsername
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["Armas.Premium.Username"];
+            }
+        }
+
+        public string ArmasPremiumPassword
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["Armas.Premium.Password"];
+            }
+        }
+
+        public string PostmarkServerToken
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["Postmark.ServerToken"];
+            }
+        }
+
+        public string PremiumNotificationEmail
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["PremiumNotificationEmail"];
+            }
+        }
     }
 }
