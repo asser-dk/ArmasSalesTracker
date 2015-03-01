@@ -4,6 +4,8 @@
     {
         public string ProductId { get; set; }
 
-        public Price Price { get; set; }
+        public Price Current { get; set; }
+
+        public Price Default { get; set; }
     }
 }

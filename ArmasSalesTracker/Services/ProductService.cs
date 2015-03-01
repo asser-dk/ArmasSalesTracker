@@ -46,7 +46,7 @@
 
         public void UpdateProductData(Product productLine)
         {
-            Log.Info(string.Format("Updating product data for \"{0}\" (Id: {1})", productLine.Title, productLine.Id));
+            Log.Debug(string.Format("Updating product data for \"{0}\" (Id: {1})", productLine.Title, productLine.Id));
             updateProductCommand.Parameters.Clear();
             updateProductCommand.Parameters.AddWithValue("@Id", productLine.Id);
             updateProductCommand.Parameters.AddWithValue("@Url", productLine.Url);
@@ -61,7 +61,9 @@
             Log.Info("Getting all products");
             using (var reader = getProductsCommand.ExecuteReader())
             {
-                yield return
+                while (reader.Read())
+                {
+                    yield return
                     new Product
                     {
                         Id = reader.GetString("Id"),
@@ -70,6 +72,7 @@
                         Title = reader.GetString("Title"),
                         Url = reader.GetString("Url")
                     };
+                }
             }
         }
     }

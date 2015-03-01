@@ -1,10 +1,11 @@
 ﻿namespace Asser.ArmasSalesTracker.Services
 {
     using System;
+    using System.Threading.Tasks;
     using Asser.ArmasSalesTracker.Models;
 
     public interface ISubscriberService : IDisposable
     {
-        void SendAlerts(Product product);
+        Task SendAlerts(Product product);
     }
 }

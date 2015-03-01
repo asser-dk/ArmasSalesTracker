@@ -55,49 +55,15 @@
         {
             Log.Info("Getting latest data from ARMAS");
 
-            var startTime = DateTime.UtcNow;
+            var startTime = DateTime.UtcNow.AddDays(-1);
 
             try
             {
                 Log.Info("Get tabs");
                 var pages = scraper.GetAllPages().ToList();
-
-                Log.Info("Logging in as freemium");
-                scraper.LogInAsFreemium();
-                foreach (var pageInfo in pages)
-                {
-                    var products = scraper.GetProductAndFreemiumInfo(pageInfo);
-                    foreach (var product in products)
-                    {
-                        Log.Info(string.Format("Updating basic info, default and current price for \"{0}\" (Id: {1})", product.Title, product.Id));
-                        productService.UpdateProductData(product);
-                        foreach (var price in product.PriceInfo)
-                        {
-                            priceService.UpdatePriceInfo(product.Id, price);
-                        }
-                    }
-                }
-
-                Log.Info("Logging in as premium");
-                scraper.LogInAsPremium();
-
-                AlertIfNumberOfPremiumDaysAreLow();
-                foreach (var pageInfo in pages)
-                {
-                    var premiumPrices = scraper.GetPremiumPrices(pageInfo);
-                    foreach (var premiumPrice in premiumPrices)
-                    {
-                        priceService.UpdatePriceInfo(premiumPrice.ProductId, premiumPrice.Price);
-                    }
-                }
-
-                Log.Info("Getting products on sale");
-                var productsOnSale = GetProductsOnSale(startTime);
-                Log.Info("Sending alerts");
-                foreach (var product in productsOnSale)
-                {
-                    subscriberService.SendAlerts(product);
-                }
+                ProcessBasicInfoAndFreemium(pages);
+                ProcessPremium(pages);
+                ProcessItemsOnSale(startTime);
 
                 Log.Info("Completed successfully.");
             }
@@ -107,6 +73,57 @@
             }
 
             Log.Info("Done.");
+        }
+
+        private void ProcessItemsOnSale(DateTime startTime)
+        {
+            Log.Info("Getting products on sale");
+            var productsOnSale = GetProductsOnSale(startTime);
+            Log.Info("Sending alerts");
+            foreach (var product in productsOnSale)
+            {
+                subscriberService.SendAlerts(product).GetAwaiter().GetResult();
+            }
+        }
+
+        private void ProcessPremium(IEnumerable<PageInfo> pages)
+        {
+            Log.Info("Logging in as premium");
+            scraper.LogInAsPremium();
+
+            AlertIfNumberOfPremiumDaysAreLow();
+            foreach (var pageInfo in pages)
+            {
+                var premiumPrices = scraper.GetPremiumPrices(pageInfo);
+                foreach (var premiumPrice in premiumPrices)
+                {
+                    Log.Info(string.Format("Updating premium price for {0}", premiumPrice.ProductId));
+                    priceService.UpdatePriceInfo(premiumPrice.ProductId, premiumPrice.Current);
+                }
+            }
+        }
+
+        private void ProcessBasicInfoAndFreemium(IEnumerable<PageInfo> pages)
+        {
+            Log.Info("Logging in as freemium");
+            scraper.LogInAsFreemium();
+            foreach (var pageInfo in pages)
+            {
+                var products = scraper.GetProductAndFreemiumInfo(pageInfo);
+                foreach (var product in products)
+                {
+                    Log.Info(
+                        string.Format(
+                            "Updating basic info, default and current price for \"{0}\" (Id: {1})",
+                            product.Title,
+                            product.Id));
+                    productService.UpdateProductData(product);
+                    foreach (var price in product.PriceInfo)
+                    {
+                        priceService.UpdatePriceInfo(product.Id, price);
+                    }
+                }
+            }
         }
 
         private void AlertIfNumberOfPremiumDaysAreLow()
@@ -122,34 +139,45 @@
 
         private IEnumerable<Product> GetProductsOnSale(DateTime startTime)
         {
-            var products = productService.GetProducts();
+            var products = productService.GetProducts().ToList();
 
+            var numOnSale = 0;
             foreach (var product in products)
             {
                 var defaultPrice = priceService.GetLatestPrice(product.Id, PriceTypes.Default);
                 var currentPrice = priceService.GetLatestPrice(product.Id, PriceTypes.Current);
-                var premiumPrice = priceService.GetLatestPrice(product.Id, PriceTypes.Premium);
-
+                var currentPremiumPrice = priceService.GetLatestPrice(product.Id, PriceTypes.CurrentPremium);
+                var premiumDiscount = 0;
                 product.PriceInfo.Add(defaultPrice);
                 product.PriceInfo.Add(currentPrice);
-                product.PriceInfo.Add(premiumPrice);
+
+                if (currentPremiumPrice != null && currentPremiumPrice.Value != defaultPrice.Value)
+                {
+                    product.PriceInfo.Add(currentPremiumPrice);
+
+                    premiumDiscount = (int)Math.Round((1 - ((double)currentPremiumPrice.Value / defaultPrice.Value)) * 100);
+                }
 
                 if (currentPrice.Timestamp >= startTime && currentPrice.Timestamp >= defaultPrice.Timestamp)
                 {
                     if (currentPrice.Value < defaultPrice.Value)
                     {
+                        numOnSale++;
                         yield return product;
                     }
                 }
 
-                if (premiumPrice.Timestamp > startTime && premiumPrice.Timestamp >= defaultPrice.Timestamp)
+                if (currentPremiumPrice != null && currentPremiumPrice.Timestamp > startTime)
                 {
-                    if (premiumPrice.Value < (defaultPrice.Value * 0.8))
+                    if (premiumDiscount != 0 && premiumDiscount != 20)
                     {
+                        numOnSale++;
                         yield return product;
                     }
                 }
             }
+
+            Log.Info(string.Format("Found {0} products currently on sale.", numOnSale));
         }
     }
 }

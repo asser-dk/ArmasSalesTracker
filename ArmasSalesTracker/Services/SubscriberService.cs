@@ -2,16 +2,22 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.Globalization;
     using System.IO;
     using System.Linq;
+    using System.Reflection;
+    using System.Threading.Tasks;
     using Asser.ArmasSalesTracker.Configuration;
     using Asser.ArmasSalesTracker.Models;
+    using log4net;
     using MySql.Data.MySqlClient;
     using PostmarkDotNet;
 
     public class SubscriberService : ISubscriberService
     {
+        private static readonly ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         private readonly MySqlConnection connection;
 
         private readonly MySqlCommand selectSubscribersCommand;
@@ -42,17 +48,27 @@
             connection.Dispose();
         }
 
-        public void SendAlerts(Product product)
+        public async Task SendAlerts(Product product)
         {
+            var messages = new Collection<PostmarkMessage>();
             foreach (var subscriber in GetSubscribers(product.Id))
             {
                 var current = product.PriceInfo.First(x => x.Type == PriceTypes.Current).Value;
                 var dfault = product.PriceInfo.First(x => x.Type == PriceTypes.Default).Value;
-                var premium = product.PriceInfo.First(x => x.Type == PriceTypes.Premium).Value;
-                var premiumDefault = Math.Round(product.PriceInfo.First(x => x.Type == PriceTypes.Current).Value * 0.8);
+                var discount = (int)Math.Round((1 - ((double)current / dfault)) * 100);
 
-                var discount = Math.Round((1 - ((double)current / dfault)) * 100);
-                var premiumDiscount = Math.Round((1 - (premium / premiumDefault)) * 100);
+                var premiumCurrentRaw = product.PriceInfo.FirstOrDefault(x => x.Type == PriceTypes.CurrentPremium);
+                var premium = 0;
+                if (premiumCurrentRaw != null)
+                {
+                    premium = premiumCurrentRaw.Value;
+                }
+
+                int premiumDiscount = 0;
+                if (premium != 0)
+                {
+                    premiumDiscount = (int)Math.Round((1 - ((double)premium / dfault)) * 100);
+                }
 
                 var mailMessage = new PostmarkMessage
                 {
@@ -61,54 +77,69 @@
                     Subject = "[APB Sales] " + product.Title + " is now on sale at ARMAS",
                     ReplyTo = "no-reply@sexyfishhorse.com",
                     TrackOpens = true,
-                    HtmlBody = GetHtmlBody(product, discount, premiumDiscount, current, dfault, premium, premiumDefault),
-                    TextBody = GetTextBody(product, discount, premiumDiscount, current, dfault, premium, premiumDefault)
+                    HtmlBody = GetHtmlBody(product, discount, premiumDiscount, current, dfault, premium),
+                    TextBody = GetTextBody(product, discount, premiumDiscount, current, dfault, premium)
                 };
 
-                client.SendMessageAsync(mailMessage);
+                messages.Add(mailMessage);
+
+                await client.SendMessageAsync(mailMessage);
             }
+
+            await client.SendMessagesAsync(messages);
+
+            Log.Info(string.Format("Sent {0} alerts for the product {1} (Id {2})", messages.Count, product.Title, product.Id));
 
             DeleteSubscribersForProduct(product);
         }
 
-        private static string GetHtmlBody(Product product, double discount, double premiumDiscount, int current, int dfault, int premium, double premiumDefault)
+        private static string GetHtmlBody(Product product, double discount, double premiumDiscount, int current, int dfault, int premium)
         {
-            string template;
+            var file = premium != 0 ? "MailTemplate.html" : "MailTemplateNoPremium.html";
 
-            using (var reader = new StreamReader("MailTemplate.html"))
+            using (var reader = new StreamReader(file))
             {
-                template = reader.ReadToEnd();
+                var template = reader.ReadToEnd();
 
-                template =
-                    template.Replace("¤Title¤", product.Title)
+                return template.Replace("¤Title¤", product.Title)
                         .Replace("¤Url¤", product.Url)
                         .Replace("¤ImageUrl¤", product.ImageUrl)
                         .Replace("¤Normal.Price¤", dfault.ToString(CultureInfo.InvariantCulture))
                         .Replace("¤Latest.Price¤", current.ToString(CultureInfo.InvariantCulture))
                         .Replace("¤Normal.Discount¤", discount.ToString(CultureInfo.InvariantCulture))
                         .Replace("¤Normal.Premium¤", premium.ToString(CultureInfo.InvariantCulture))
-                        .Replace("¤Latest.Premium¤", premiumDefault.ToString(CultureInfo.InvariantCulture))
                         .Replace("¤Premium.Discount¤", premiumDiscount.ToString(CultureInfo.InvariantCulture))
                         .Replace("¤LastUpdated¤", DateTime.UtcNow.ToString("U"))
                         .Replace("¤Category¤", product.Category);
             }
-
-            return template;
         }
 
-        private static string GetTextBody(Product product, double discount, double premiumDiscount, int current, int dfault, int premium, double premiumDefault)
+        private static string GetTextBody(Product product, int discount, int premiumDiscount, int current, int dfault, int premium)
         {
-            return string.Format(
-                "{0} is on sale on ARMAS!\n\rCategory: {8}\n\r\n\rNormal price: {2} - Discounted at {3} - Save {4} %\n\rPremium normal price: {5} - Discounted at {6} - Save {7} %\n\r\n\rVisit ARMAS: {1}\n\r\n\rYou are receiving this mail because you signed up for an email alert the next time this product went on sale. You will only receive this email once for this product.\n\r\n\rBest regards SexyFishHorse Armas sales tracker\n\rhttp://apbsales.sexyfishhorse.com",
-                product.Title,
-                product.Url,
-                dfault,
-                current,
-                discount,
-                premiumDefault,
-                premium,
-                premiumDiscount,
-                product.Category);
+            if (premiumDiscount != 0 && premiumDiscount != 20)
+            {
+                return
+                    string.Format(
+                        "{0} is on sale on ARMAS!\n\rCategory: {7}\n\r\n\rNormal price: {2} - Discounted at {3} - Save {4} %\n\rPremium price: {5} - Save {6} %\n\r\n\rVisit ARMAS: {1}\n\r\n\rYou are receiving this mail because you signed up for an email alert the next time this product went on sale. You will only receive this email once for this product.\n\r\n\rBest regards SexyFishHorse Armas sales tracker\n\rhttp://apbsales.sexyfishhorse.com",
+                        product.Title,
+                        product.Url,
+                        dfault,
+                        current,
+                        discount,
+                        premium,
+                        premiumDiscount,
+                        product.Category);
+            }
+
+            return
+                string.Format(
+                    "{0} is on sale on ARMAS!\n\rCategory: {5}\n\r\n\rNormal price: {2} - Discounted at {3} - Save {4} %\n\r\n\rVisit ARMAS: {1}\n\r\n\rYou are receiving this mail because you signed up for an email alert the next time this product went on sale. You will only receive this email once for this product.\n\r\n\rBest regards SexyFishHorse Armas sales tracker\n\rhttp://apbsales.sexyfishhorse.com",
+                    product.Title,
+                    product.Url,
+                    dfault,
+                    current,
+                    discount,
+                    product.Category);
         }
 
         private void DeleteSubscribersForProduct(Product product)
@@ -123,11 +154,12 @@
             selectSubscribersCommand.Parameters.Clear();
             selectSubscribersCommand.Parameters.AddWithValue("@ProductId", productId);
 
-            var result = selectSubscribersCommand.ExecuteReader();
-
-            while (result.Read())
+            using (var result = selectSubscribersCommand.ExecuteReader())
             {
-                yield return result.GetString("Email");
+                while (result.Read())
+                {
+                    yield return result.GetString("Email");
+                }
             }
         }
     }
