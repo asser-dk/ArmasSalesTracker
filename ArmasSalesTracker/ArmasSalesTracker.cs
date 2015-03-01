@@ -168,8 +168,7 @@
                         yield return product;
                     }
                 }
-
-                if (currentPremiumPrice != null && currentPremiumPrice.Timestamp > startTime)
+                else if (currentPremiumPrice != null && currentPremiumPrice.Timestamp > startTime)
                 {
                     if (premiumDiscount != 0 && premiumDiscount != 20)
                     {
