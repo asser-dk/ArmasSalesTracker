@@ -108,6 +108,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="MailTemplateNoPremium.html">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
     <Content Include="MailTemplate.html">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

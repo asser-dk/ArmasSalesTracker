@@ -84,7 +84,7 @@
 
         public IEnumerable<PageInfo> GetSubPages(TabInfo tabInfo)
         {
-            Log.Info(string.Format("Acquiring sub pages for  {0}", tabInfo.Title));
+            Log.Info(string.Format("Acquiring sub pages for {0}", tabInfo.Title));
             var web = new HtmlWeb();
             var doc = web.Load(tabInfo.Url);
 
@@ -158,20 +158,18 @@
             {
                 var premiumPrice = new PremiumPrice
                 {
-                    ProductId = productNode.Id.Substring(7),
-                    Price = new Price { Type = PriceTypes.Premium, Timestamp = DateTime.UtcNow }
+                    ProductId = productNode.Id.Substring(7)
                 };
 
-                var premiumPriceNode =
-                    productNode.SelectSingleNode(
-                        "table/tr/td[@class='product_price_container']/span/b/span/span[contains(@class, 'premium_price')]");
+                premiumPrice.Current = GetCurrentPrice(productNode);
+                premiumPrice.Current.Type = PriceTypes.CurrentPremium;
 
-                if (premiumPriceNode == null)
-                {
-                    continue;
-                }
+                Log.Debug(
+                    string.Format(
+                        "Premium price {0} for the product {1}",
+                        premiumPrice.ProductId,
+                        premiumPrice.Current.Value));
 
-                premiumPrice.Price.Value = int.Parse(premiumPriceNode.InnerText.Replace(" G1C", string.Empty));
                 yield return premiumPrice;
             }
         }

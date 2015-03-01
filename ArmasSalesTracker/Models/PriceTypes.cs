@@ -6,6 +6,6 @@
 
         Current = 2,
 
-        Premium = 3
+        CurrentPremium = 3
     }
 }
