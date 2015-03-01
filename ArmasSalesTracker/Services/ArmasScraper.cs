@@ -107,6 +107,8 @@
                     pageInfo.Title = subPageNode.InnerText.Trim();
                 }
 
+                pageInfo.Parent = tabInfo;
+
                 Log.Debug(string.Format("Found the subpage {0} with the link {1}", pageInfo.Title, pageInfo.Url));
 
                 yield return pageInfo;
