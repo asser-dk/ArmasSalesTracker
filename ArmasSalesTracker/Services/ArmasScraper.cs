@@ -117,7 +117,7 @@
 
         public IEnumerable<PageInfo> GetAllPages()
         {
-            return GetTabs().SelectMany(GetSubPages);
+            return GetTabs().Skip(1).SelectMany(GetSubPages);
         }
 
         public void LogInAsFreemium()
