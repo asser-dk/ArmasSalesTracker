@@ -14,5 +14,7 @@
         void LogInAsPremium();
 
         IEnumerable<PremiumPrice> GetPremiumPrices(PageInfo pageInfo);
+
+        int GetDaysOfPremiumLeft();
     }
 }

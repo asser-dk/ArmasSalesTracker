@@ -91,5 +91,13 @@
                 return ConfigurationManager.AppSettings["Postmark.ServerToken"];
             }
         }
+
+        public string PremiumNotificationEmail
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["PremiumNotificationEmail"];
+            }
+        }
     }
 }

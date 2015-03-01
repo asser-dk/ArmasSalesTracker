@@ -176,6 +176,15 @@
             }
         }
 
+        public int GetDaysOfPremiumLeft()
+        {
+            var doc = GetPageContent(configuration.ArmasFrontpagePageUri);
+
+            var premiumCounter = doc.DocumentNode.SelectSingleNode("//*[@id='store_header_content']/div[1]/div/b").InnerText.Split(' ');
+
+            return int.Parse(premiumCounter[0]);
+        }
+
         private static Price GetCurrentPrice(HtmlNode productNode)
         {
             var priceNode = productNode.SelectSingleNode("table/tr/td[@class='product_price_container']/span/b/span[@class='product_g1c_price']/text()");
