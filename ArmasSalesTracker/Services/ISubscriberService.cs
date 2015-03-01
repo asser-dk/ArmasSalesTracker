@@ -5,6 +5,6 @@
 
     public interface ISubscriberService : IDisposable
     {
-        void SendAlerts(ProductLine product, ProductPrice normalPrices);
+        void SendAlerts(Product product);
     }
 }
