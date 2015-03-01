@@ -322,9 +322,12 @@
         private CookieContainer GetCookies()
         {
             var container = new CookieContainer();
-            foreach (var cookie in Cookies)
+            if (Cookies != null)
             {
-                container.Add((Cookie)cookie);
+                foreach (var cookie in Cookies)
+                {
+                    container.Add((Cookie)cookie);
+                }
             }
 
             return container;
