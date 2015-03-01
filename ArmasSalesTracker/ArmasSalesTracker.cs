@@ -84,6 +84,7 @@
             foreach (var product in productsOnSale)
             {
                 subscriberService.SendAlerts(product).GetAwaiter().GetResult();
+                productService.AddToFrontpage(product);
             }
         }
 
