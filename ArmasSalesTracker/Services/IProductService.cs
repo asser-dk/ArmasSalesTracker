@@ -11,5 +11,7 @@
         IEnumerable<Product> GetProducts();
 
         void ClearFrontpage();
+
+        void AddToFrontpage(Product product);
     }
 }
