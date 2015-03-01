@@ -32,7 +32,7 @@
             selectSubscribersCommand.Prepare();
             deleteSubscribersCommand.Prepare();
 
-            client = new PostmarkClient("be2ea430-9de6-4873-ad5d-e68fed3e71ea");
+            client = new PostmarkClient(configuration.PostmarkServerToken);
         }
 
         public void SendAlerts(ProductLine product, ProductPrice normalPrices)

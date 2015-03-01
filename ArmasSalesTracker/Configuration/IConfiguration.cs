@@ -21,5 +21,7 @@
         string ArmasPremiumUsername { get; }
 
         string ArmasPremiumPassword { get; }
+
+        string PostmarkServerToken { get; }
     }
 }
