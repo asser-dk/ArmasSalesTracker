@@ -57,15 +57,22 @@
 
             var latestPrice = GetLatestPrice(productId, price.Type);
 
-            Log.Debug(string.Format("Latest price was {0}", latestPrice.Value));
-
-            if (latestPrice.Value != price.Value)
+            if (latestPrice == null)
             {
+                Log.Debug("No latest price (new product?)");
                 InsertPricePoint(productId, price);
             }
             else
             {
-                UpdatePricePointTimestamp(productId, latestPrice);
+                Log.Debug(string.Format("Latest price was {0}", latestPrice.Value));
+                if (latestPrice.Value != price.Value)
+                {
+                    InsertPricePoint(productId, price);
+                }
+                else
+                {
+                    UpdatePricePointTimestamp(productId, latestPrice);
+                }
             }
         }
 

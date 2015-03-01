@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Reflection;
     using Asser.ArmasSalesTracker.Configuration;
     using Asser.ArmasSalesTracker.Models;
@@ -22,12 +23,20 @@
 
         private readonly ISubscriberService subscriberService;
 
-        public ArmasSalesTracker(IArmasScraper scraper, IProductService productService, IPriceService priceService, ISubscriberService subscriberService)
+        private readonly IPremiumNotifierService premiumNotifierService;
+
+        public ArmasSalesTracker(
+            IArmasScraper scraper,
+            IProductService productService,
+            IPriceService priceService,
+            ISubscriberService subscriberService,
+            IPremiumNotifierService premiumNotifierService)
         {
             this.scraper = scraper;
             this.productService = productService;
             this.priceService = priceService;
             this.subscriberService = subscriberService;
+            this.premiumNotifierService = premiumNotifierService;
         }
 
         public static void Main(string[] args)
@@ -51,7 +60,7 @@
             try
             {
                 Log.Info("Get tabs");
-                var pages = scraper.GetAllPages();
+                var pages = scraper.GetAllPages().ToList();
 
                 Log.Info("Logging in as freemium");
                 scraper.LogInAsFreemium();
@@ -71,6 +80,8 @@
 
                 Log.Info("Logging in as premium");
                 scraper.LogInAsPremium();
+
+                AlertIfNumberOfPremiumDaysAreLow();
                 foreach (var pageInfo in pages)
                 {
                     var premiumPrices = scraper.GetPremiumPrices(pageInfo);
@@ -81,8 +92,13 @@
                 }
 
                 Log.Info("Getting products on sale");
-
                 var productsOnSale = GetProductsOnSale(startTime);
+                Log.Info("Sending alerts");
+                foreach (var product in productsOnSale)
+                {
+                    subscriberService.SendAlerts(product);
+                }
+
                 Log.Info("Completed successfully.");
             }
             catch (Exception ex)
@@ -91,6 +107,17 @@
             }
 
             Log.Info("Done.");
+        }
+
+        private void AlertIfNumberOfPremiumDaysAreLow()
+        {
+            var daysOfPremiumLeft = scraper.GetDaysOfPremiumLeft();
+            Log.Info(daysOfPremiumLeft + " days of premium left.");
+
+            if (daysOfPremiumLeft < 3)
+            {
+                premiumNotifierService.SendLowPremiumCountEmail(daysOfPremiumLeft);
+            }
         }
 
         private IEnumerable<Product> GetProductsOnSale(DateTime startTime)
