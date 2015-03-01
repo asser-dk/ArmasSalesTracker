@@ -83,5 +83,13 @@
                 return ConfigurationManager.AppSettings["Armas.Premium.Password"];
             }
         }
+
+        public string PostmarkServerToken
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["Postmark.ServerToken"];
+            }
+        }
     }
 }
