@@ -9,5 +9,7 @@
         void UpdateProductData(Product product);
 
         IEnumerable<Product> GetProducts();
+
+        void ClearFrontpage();
     }
 }

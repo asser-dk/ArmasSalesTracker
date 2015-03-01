@@ -79,6 +79,7 @@
         {
             Log.Info("Getting products on sale");
             var productsOnSale = GetProductsOnSale(startTime);
+            productService.ClearFrontpage();
             Log.Info("Sending alerts");
             foreach (var product in productsOnSale)
             {

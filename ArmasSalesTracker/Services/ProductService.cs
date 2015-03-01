@@ -75,5 +75,15 @@
                 }
             }
         }
+
+        public void ClearFrontpage()
+        {
+            Log.Debug("Clearing frontpage");
+            using (var command = new MySqlCommand("TRUNCATE TABLE Frontpage", connection))
+            {
+                command.Prepare();
+                command.ExecuteNonQuery();
+            }
+        }
     }
 }
