@@ -79,10 +79,12 @@
         {
             Log.Info("Getting products on sale");
             var productsOnSale = GetProductsOnSale(startTime);
+            productService.ClearFrontpage();
             Log.Info("Sending alerts");
             foreach (var product in productsOnSale)
             {
                 subscriberService.SendAlerts(product).GetAwaiter().GetResult();
+                productService.AddToFrontpage(product);
             }
         }
 
@@ -166,8 +168,7 @@
                         yield return product;
                     }
                 }
-
-                if (currentPremiumPrice != null && currentPremiumPrice.Timestamp > startTime)
+                else if (currentPremiumPrice != null && currentPremiumPrice.Timestamp > startTime)
                 {
                     if (premiumDiscount != 0 && premiumDiscount != 20)
                     {
