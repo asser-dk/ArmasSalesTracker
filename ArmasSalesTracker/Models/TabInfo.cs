@@ -1,11 +1,9 @@
 ﻿namespace Asser.ArmasSalesTracker.Models
 {
-    public class PageInfo
+    public class TabInfo
     {
         public string Title { get; set; }
 
         public string Url { get; set; }
-
-        public TabInfo Parent { get; set; }
     }
 }

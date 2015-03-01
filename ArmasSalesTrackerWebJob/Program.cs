@@ -2,7 +2,6 @@
 {
     using Asser.ArmasSalesTracker;
     using Asser.ArmasSalesTracker.Configuration;
-    using Asser.ArmasSalesTracker.Services;
     using Microsoft.Azure.WebJobs;
     using Ninject;
 
@@ -18,10 +17,7 @@
             host.Start();
             var kernel = new StandardKernel(new ArmasSalesTrackerModule());
 
-            var tracker = new ArmasSalesTracker(
-                kernel.Get<IArmasScraper>(),
-                kernel.Get<IProductLineService>(),
-                kernel.Get<ISubscriberService>());
+            var tracker = kernel.Get<ArmasSalesTracker>();
 
             tracker.RunJob();
             host.Stop();

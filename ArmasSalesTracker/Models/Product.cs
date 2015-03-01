@@ -1,10 +1,13 @@
 ﻿namespace Asser.ArmasSalesTracker.Models
 {
-    public class ProductLine
+    using System.Collections.Generic;
+    using System.Collections.ObjectModel;
+
+    public class Product
     {
-        public ProductLine()
+        public Product()
         {
-            Prices = new ProductPrice();
+            PriceInfo = new Collection<Price>();
         }
 
         public string Id { get; set; }
@@ -17,6 +20,6 @@
 
         public string Category { get; set; }
 
-        public ProductPrice Prices { get; set; }
+        public ICollection<Price> PriceInfo { get; set; }
     }
 }

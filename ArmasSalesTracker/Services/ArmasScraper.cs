@@ -1,5 +1,6 @@
 ﻿namespace Asser.ArmasSalesTracker.Services
 {
+    using System;
     using System.Collections.Generic;
     using System.Globalization;
     using System.IO;
@@ -51,18 +52,7 @@
             }
         }
 
-        public IEnumerable<ProductLine> GetArmasProductLines()
-        {
-            Log.Info("Update all armas products");
-            LogInToArmas(configuration.ArmasUsername, configuration.ArmasPassword);
-
-            return
-                GetTabs()
-                    .SelectMany(GetSubPages, (tabInfo, page) => new { tabInfo, page })
-                    .SelectMany(@t => GetProductLines(@t.page, @t.tabInfo));
-        }
-
-        public IEnumerable<PageInfo> GetTabs()
+        public IEnumerable<TabInfo> GetTabs()
         {
             Log.Info("Acquiring tabs");
             var request = (HttpWebRequest)WebRequest.Create(configuration.ArmasFrontpagePageUri);
@@ -79,11 +69,11 @@
                 {
                     var classes = tabLink.Attributes["class"].Value;
                     var matches = tabTitleRegex.Matches(classes);
-                    var title = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(matches[0].Value.Substring(4).Replace('_', ' '));
+                    var title = CultureInfo.CurrentCulture.TextInfo.ToTitleCase(matches[0].Value.Substring(4).Replace('_', ' ')).Trim();
                     var url = configuration.ArmasBaseHost + tabLink.Attributes["href"].Value;
 
                     Log.Debug(string.Format("Found tab {0} with the link {1}", title, url));
-                    yield return new PageInfo
+                    yield return new TabInfo
                     {
                         Title = title,
                         Url = url
@@ -92,9 +82,9 @@
             }
         }
 
-        public IEnumerable<PageInfo> GetSubPages(PageInfo tabInfo)
+        public IEnumerable<PageInfo> GetSubPages(TabInfo tabInfo)
         {
-            Log.Info(string.Format("Acquiring sub pages for  {0}", tabInfo.Title));
+            Log.Info(string.Format("Acquiring sub pages for {0}", tabInfo.Title));
             var web = new HtmlWeb();
             var doc = web.Load(tabInfo.Url);
 
@@ -108,14 +98,16 @@
 
                 if (anchorNode != null)
                 {
-                    pageInfo.Title = anchorNode.InnerText;
+                    pageInfo.Title = anchorNode.InnerText.Trim();
                     pageInfo.Url = string.Format("{0}/{1}", configuration.ArmasBaseHost, anchorNode.Attributes["href"].Value);
                 }
                 else
                 {
                     pageInfo.Url = tabInfo.Url;
-                    pageInfo.Title = subPageNode.InnerText;
+                    pageInfo.Title = subPageNode.InnerText.Trim();
                 }
+
+                pageInfo.Parent = tabInfo;
 
                 Log.Debug(string.Format("Found the subpage {0} with the link {1}", pageInfo.Title, pageInfo.Url));
 
@@ -123,71 +115,135 @@
             }
         }
 
-        public IEnumerable<ProductLine> GetProductLines(PageInfo pageInfo, PageInfo tabInfo)
+        public IEnumerable<PageInfo> GetAllPages()
         {
-            Log.Info(string.Format("Get product lines for page {0}", pageInfo.Title));
-            var doc = GetPageContent(pageInfo.Url);
-            var productLinksNode = doc.DocumentNode.SelectNodes("//div[@id='products']/div/div[starts-with(@class, 'product_listing')]");
+            return GetTabs().SelectMany(GetSubPages);
+        }
 
-            foreach (var productLineNode in productLinksNode)
+        public void LogInAsFreemium()
+        {
+            LogInToArmas(configuration.ArmasUsername, configuration.ArmasPassword);
+        }
+
+        public IEnumerable<Product> GetProductAndFreemiumInfo(PageInfo pageInfo)
+        {
+            var document = GetPageContent(pageInfo.Url);
+
+            var productsNode = document.DocumentNode.SelectNodes("//div[@id='products']/div/div[starts-with(@class, 'product_listing')]");
+
+            foreach (var productNode in productsNode)
             {
-                var productLine = new ProductLine();
-                productLine.Category = string.Format("{0} - {1}", tabInfo.Title, pageInfo.Title);
+                var product = GetProductData(productNode, pageInfo);
+                var defaultPrice = GetDefaultPrice(productNode);
+                var discount = GetCurrentPrice(productNode);
 
-                productLine.Id = productLineNode.Id.Substring(7);
+                product.PriceInfo.Add(defaultPrice);
+                product.PriceInfo.Add(discount);
 
-                productLine.Url = string.Format(
-                    "{0}/{1}",
-                    configuration.ArmasBaseUrl,
-                    productLineNode.SelectSingleNode("table/tr/td[@class='product_image_container']/a").Attributes["href"].Value);
+                yield return product;
+            }
+        }
 
-                productLine.ImageUrl = configuration.ArmasBaseHost + productLineNode.SelectSingleNode("table/tr/td/a/img").Attributes["src"].Value;
+        public void LogInAsPremium()
+        {
+            LogInToArmas(configuration.ArmasPremiumUsername, configuration.ArmasPremiumPassword);
+        }
 
-                productLine.Title = productLineNode.SelectSingleNode("h4").InnerText;
+        public IEnumerable<PremiumPrice> GetPremiumPrices(PageInfo pageInfo)
+        {
+            var document = GetPageContent(pageInfo.Url);
+            var productsNode = document.DocumentNode.SelectNodes("//div[@id='products']/div/div[starts-with(@class, 'product_listing')]");
 
-                var priceNode =
-                    productLineNode.SelectSingleNode(
-                        "table/tr/td[@class='product_price_container']/span/b/span[@class='product_g1c_price']");
-
-                productLine.Prices.Price =
-                    int.Parse(priceNode.SelectSingleNode("text()").InnerText.Replace(" G1C", string.Empty));
-
-                var defaultPriceNode = priceNode.SelectSingleNode("strike");
-
-                if (defaultPriceNode != null)
+            foreach (var productNode in productsNode)
+            {
+                var premiumPrice = new PremiumPrice
                 {
-                    productLine.Prices.DefaultPrice = int.Parse(defaultPriceNode.InnerText);
-                }
-                else
-                {
-                    productLine.Prices.DefaultPrice = productLine.Prices.Price;
-                }
+                    ProductId = productNode.Id.Substring(7)
+                };
 
-                var premiumPriceNode =
-                    productLineNode.SelectSingleNode("table/tr/td[@class='product_price_container']/span/b/span/span[contains(@class, 'premium_price')]");
-
-                if (premiumPriceNode != null)
-                {
-                    productLine.Prices.Premium =
-                    int.Parse(
-                        premiumPriceNode
-                            .InnerText.Replace(" G1C", string.Empty));
-                }
+                premiumPrice.Current = GetCurrentPrice(productNode);
+                premiumPrice.Current.Type = PriceTypes.CurrentPremium;
 
                 Log.Debug(
                     string.Format(
-                        "Found the product {0} (id: {1}) with the link {2}",
-                        productLine.Title,
-                        productLine.Id,
-                        productLine.Url));
+                        "Premium price {0} for the product {1}",
+                        premiumPrice.ProductId,
+                        premiumPrice.Current.Value));
 
-                yield return productLine;
+                yield return premiumPrice;
             }
+        }
+
+        public int GetDaysOfPremiumLeft()
+        {
+            var doc = GetPageContent(configuration.ArmasFrontpagePageUri);
+
+            var premiumCounter = doc.DocumentNode.SelectSingleNode("//*[@id='store_header_content']/div[1]/div/b").InnerText.Split(' ');
+
+            return int.Parse(premiumCounter[0]);
+        }
+
+        private static Price GetCurrentPrice(HtmlNode productNode)
+        {
+            var priceNode = productNode.SelectSingleNode("table/tr/td[@class='product_price_container']/span/b/span[@class='product_g1c_price']/text()");
+
+            var price = new Price
+            {
+                Type = PriceTypes.Current,
+                Timestamp = DateTime.UtcNow,
+                Value = int.Parse(priceNode.InnerText.Replace(" G1C", string.Empty))
+            };
+
+            return price;
+        }
+
+        private static Price GetDefaultPrice(HtmlNode productNode)
+        {
+            var priceNode = productNode.SelectSingleNode("table/tr/td[@class='product_price_container']/span/b/span[@class='product_g1c_price']");
+
+            var price = new Price
+            {
+                Type = PriceTypes.Default,
+                Timestamp = DateTime.UtcNow,
+                Value = int.Parse(priceNode.SelectSingleNode("text()").InnerText.Replace(" G1C", string.Empty))
+            };
+
+            var defaultPriceNode = priceNode.SelectSingleNode("strike");
+
+            if (defaultPriceNode != null)
+            {
+                price.Value = int.Parse(defaultPriceNode.InnerText);
+            }
+
+            return price;
+        }
+
+        private Product GetProductData(HtmlNode productNode, PageInfo pageInfo)
+        {
+            var product = new Product
+            {
+                Id = productNode.Id.Substring(7),
+                Title = productNode.SelectSingleNode("h4").InnerText,
+                Category = string.Format("{0} - {1}", pageInfo.Parent.Title, pageInfo.Title),
+            };
+
+            product.ImageUrl = configuration.ArmasBaseHost + productNode.SelectSingleNode("table/tr/td/a/img").Attributes["src"].Value;
+
+            product.Url = string.Format(
+                "{0}/{1}",
+                configuration.ArmasBaseUrl,
+                productNode.SelectSingleNode("table/tr/td[@class='product_image_container']/a").Attributes["href"].Value);
+
+            Log.Debug(string.Format("Found the product {0} (id: {1}) with the link {2}", product.Title, product.Id, product.Url));
+
+            return product;
         }
 
         private void LogInToArmas(string username, string password)
         {
-            Log.Info("Log in to armas");
+            Log.Debug("Clearing cookies");
+            Cookies = new CookieCollection();
+
             Log.Debug("Aquiring login token");
             var web = new HtmlWeb { UseCookies = true, PostResponse = OnPostResponse };
             var doc = web.Load(configuration.ArmasLoginPageUrl);
@@ -273,9 +329,12 @@
         private CookieContainer GetCookies()
         {
             var container = new CookieContainer();
-            foreach (var cookie in Cookies)
+            if (Cookies != null)
             {
-                container.Add((Cookie)cookie);
+                foreach (var cookie in Cookies)
+                {
+                    container.Add((Cookie)cookie);
+                }
             }
 
             return container;

@@ -5,6 +5,16 @@
 
     public interface IArmasScraper
     {
-        IEnumerable<ProductLine> GetArmasProductLines();
+        IEnumerable<PageInfo> GetAllPages();
+
+        void LogInAsFreemium();
+
+        IEnumerable<Product> GetProductAndFreemiumInfo(PageInfo pageInfo);
+
+        void LogInAsPremium();
+
+        IEnumerable<PremiumPrice> GetPremiumPrices(PageInfo pageInfo);
+
+        int GetDaysOfPremiumLeft();
     }
 }
