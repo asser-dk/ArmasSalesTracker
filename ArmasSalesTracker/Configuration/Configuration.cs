@@ -99,5 +99,21 @@
                 return ConfigurationManager.AppSettings["PremiumNotificationEmail"];
             }
         }
+
+        public string AlertFromEmail
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["Alerts.FromEmail"];
+            }
+        }
+
+        public string AlertReplyToEmail
+        {
+            get
+            {
+                return ConfigurationManager.AppSettings["Alerts.ReplyToEmail"];
+            }
+        }
     }
 }

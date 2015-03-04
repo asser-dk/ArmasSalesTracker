@@ -25,5 +25,9 @@
         string PostmarkServerToken { get; }
 
         string PremiumNotificationEmail { get; }
+
+        string AlertFromEmail { get; }
+
+        string AlertReplyToEmail { get; }
     }
 }

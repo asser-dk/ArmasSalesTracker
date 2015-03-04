@@ -18,6 +18,8 @@
     {
         private static readonly ILog Log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
+        private readonly IConfiguration configuration;
+
         private readonly MySqlConnection connection;
 
         private readonly MySqlCommand selectSubscribersCommand;
@@ -28,6 +30,7 @@
 
         public SubscriberService(IConfiguration configuration)
         {
+            this.configuration = configuration;
             connection = new MySqlConnection(configuration.MySqlConnectionString);
             connection.Open();
 
@@ -72,10 +75,10 @@
 
                 var mailMessage = new PostmarkMessage
                 {
-                    From = "apbsales@sexyfishhorse.com",
+                    From = configuration.AlertFromEmail,
                     To = subscriber,
-                    Subject = "[APB Sales] " + product.Title + " is now on sale at ARMAS",
-                    ReplyTo = "no-reply@sexyfishhorse.com",
+                    Subject = string.Format("[APB Sales] {0} is now on sale at ARMAS", product.Title),
+                    ReplyTo = configuration.AlertReplyToEmail,
                     TrackOpens = true,
                     HtmlBody = GetHtmlBody(product, discount, premiumDiscount, current, dfault, premium),
                     TextBody = GetTextBody(product, discount, premiumDiscount, current, dfault, premium)
