@@ -1,4 +1,4 @@
-# ArmasSalesTracker
+# Armas Sales Tracker
 Source code for the Armas sales tracker scraper for the game APB
 
 
