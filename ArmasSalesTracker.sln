@@ -5,7 +5,7 @@ VisualStudioVersion = 12.0.31101.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArmasSalesTracker", "ArmasSalesTracker\ArmasSalesTracker.csproj", "{83DC0169-EAB7-4689-87E1-E8EAE7EA8EE3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArmasSalesTrackerWebJob", "ArmasSalesTrackerWebJob\ArmasSalesTrackerWebJob.csproj", "{9EC3BA1C-DAC2-42FD-9844-2905F4C461CF}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArmasSalesTrackerWebJob", "ArmasSalesTrackerWebJob\ArmasSalesTrackerWebJob.csproj", "{B75E3D23-1F73-4732-955B-8AF3C8E328EB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{83DC0169-EAB7-4689-87E1-E8EAE7EA8EE3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{83DC0169-EAB7-4689-87E1-E8EAE7EA8EE3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{83DC0169-EAB7-4689-87E1-E8EAE7EA8EE3}.Release|Any CPU.Build.0 = Release|Any CPU
-		{9EC3BA1C-DAC2-42FD-9844-2905F4C461CF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9EC3BA1C-DAC2-42FD-9844-2905F4C461CF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9EC3BA1C-DAC2-42FD-9844-2905F4C461CF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9EC3BA1C-DAC2-42FD-9844-2905F4C461CF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B75E3D23-1F73-4732-955B-8AF3C8E328EB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B75E3D23-1F73-4732-955B-8AF3C8E328EB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B75E3D23-1F73-4732-955B-8AF3C8E328EB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B75E3D23-1F73-4732-955B-8AF3C8E328EB}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
