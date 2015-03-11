@@ -70,6 +70,8 @@
             catch (Exception ex)
             {
                 Log.Error("Unexpected exception during scraping", ex);
+
+                throw;
             }
 
             Log.Info("Done.");
