@@ -88,6 +88,8 @@
                 subscriberService.SendAlerts(product).GetAwaiter().GetResult();
                 productService.AddToFrontpage(product);
             }
+
+            Log.Info(string.Format("Sent {0} alerts in total", subscriberService.TotalAlertsSent));
         }
 
         private void ProcessPremium(IEnumerable<PageInfo> pages)

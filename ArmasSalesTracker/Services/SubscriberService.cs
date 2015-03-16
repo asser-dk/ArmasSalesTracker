@@ -45,6 +45,8 @@
             client = new PostmarkClient(configuration.PostmarkServerToken);
         }
 
+        public int TotalAlertsSent { get; private set; }
+
         public void Dispose()
         {
             connection.Close();
@@ -85,15 +87,16 @@
                 };
 
                 messages.Add(mailMessage);
-
-                await client.SendMessageAsync(mailMessage);
             }
 
-            await client.SendMessagesAsync(messages);
+            var sendTask = client.SendMessagesAsync(messages);
+            var deleteTask = DeleteSubscribersForProduct(product);
 
-            Log.Info(string.Format("Sent {0} alerts for the product {1} (Id {2})", messages.Count, product.Title, product.Id));
+            Log.Debug(string.Format("Sent {0} alerts for the product {1} (Id {2})", messages.Count, product.Title, product.Id));
+            TotalAlertsSent += messages.Count;
 
-            DeleteSubscribersForProduct(product);
+            await sendTask;
+            await deleteTask;
         }
 
         private static string GetHtmlBody(Product product, double discount, double premiumDiscount, int current, int dfault, int premium)
@@ -145,11 +148,11 @@
                     product.Category);
         }
 
-        private void DeleteSubscribersForProduct(Product product)
+        private async Task DeleteSubscribersForProduct(Product product)
         {
             deleteSubscribersCommand.Parameters.Clear();
             deleteSubscribersCommand.Parameters.AddWithValue("@ProductId", product.Id);
-            deleteSubscribersCommand.ExecuteNonQuery();
+            await deleteSubscribersCommand.ExecuteNonQueryAsync();
         }
 
         private IEnumerable<string> GetSubscribers(string productId)
