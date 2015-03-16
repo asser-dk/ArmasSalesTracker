@@ -6,6 +6,8 @@
 
     public interface ISubscriberService : IDisposable
     {
+        int TotalAlertsSent { get; }
+
         Task SendAlerts(Product product);
     }
 }
