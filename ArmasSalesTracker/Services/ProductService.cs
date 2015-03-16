@@ -98,7 +98,7 @@
 
         public void AddToFrontpage(Product product)
         {
-            Log.Info("Adding " + product.Title + " (Id: " + product.Id + ") to the frontpage.");
+            Log.Info(string.Format("Adding {0} (Id: {1}) to the frontpage.", product.Title, product.Id));
             addProductToFrontpageCommand.Parameters.Clear();
             addProductToFrontpageCommand.Parameters.AddWithValue("@ProductId", product.Id);
             addProductToFrontpageCommand.Parameters.AddWithValue("@Title", product.Title);

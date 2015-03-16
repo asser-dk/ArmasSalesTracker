@@ -93,6 +93,7 @@
         private void ProcessPremium(IEnumerable<PageInfo> pages)
         {
             Log.Info("Logging in as premium");
+            Log.Info("Updating premium prices for products.");
             scraper.LogInAsPremium();
 
             AlertIfNumberOfPremiumDaysAreLow();
@@ -101,7 +102,7 @@
                 var premiumPrices = scraper.GetPremiumPrices(pageInfo);
                 foreach (var premiumPrice in premiumPrices)
                 {
-                    Log.Info(string.Format("Updating premium price for {0}", premiumPrice.ProductId));
+                    Log.Debug(string.Format("Updating premium price for {0}", premiumPrice.ProductId));
                     priceService.UpdatePriceInfo(premiumPrice.ProductId, premiumPrice.Current);
                 }
             }
@@ -111,14 +112,15 @@
         {
             Log.Info("Logging in as freemium");
             scraper.LogInAsFreemium();
+            Log.Info("Updating basic info and freemium prices...");
             foreach (var pageInfo in pages)
             {
                 var products = scraper.GetProductAndFreemiumInfo(pageInfo);
                 foreach (var product in products)
                 {
-                    Log.Info(
+                    Log.Debug(
                         string.Format(
-                            "Updating basic info, default and current price for \"{0}\" (Id: {1})",
+                            "Updating info and freemium prices for \"{0}\" (Id: {1})",
                             product.Title,
                             product.Id));
                     productService.UpdateProductData(product);
@@ -133,16 +135,18 @@
         private void AlertIfNumberOfPremiumDaysAreLow()
         {
             var daysOfPremiumLeft = scraper.GetDaysOfPremiumLeft();
-            Log.Info(daysOfPremiumLeft + " days of premium left.");
+            Log.Info(string.Format("{0} days of premium left.", daysOfPremiumLeft));
 
             if (daysOfPremiumLeft < 3)
             {
+                Log.Info("Number of days is below the threshold, send an alert email.");
                 premiumNotifierService.SendLowPremiumCountEmail(daysOfPremiumLeft);
             }
         }
 
         private IEnumerable<Product> GetProductsOnSale(DateTime startTime)
         {
+            Log.Info("Getting products on sale");
             var products = productService.GetProducts().ToList();
 
             var numOnSale = 0;
