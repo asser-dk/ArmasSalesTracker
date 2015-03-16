@@ -95,10 +95,10 @@
         private void ProcessPremium(IEnumerable<PageInfo> pages)
         {
             Log.Info("Logging in as premium");
-            Log.Info("Updating premium prices for products.");
             scraper.LogInAsPremium();
-
             AlertIfNumberOfPremiumDaysAreLow();
+
+            Log.Info("Updating premium prices for products.");
             foreach (var pageInfo in pages)
             {
                 var premiumPrices = scraper.GetPremiumPrices(pageInfo);
